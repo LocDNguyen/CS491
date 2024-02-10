@@ -7,4 +7,3 @@ class GameState(Enum):
     HIGHSCORE = 2
     # DEAD = 3
     # NAME = 4
-    # SECOND = 5
