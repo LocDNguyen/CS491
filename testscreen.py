@@ -28,3 +28,26 @@ def highscore(screen, file_name, center, game_loop):
     menu_btn = UIElement(center_position = (130, 750), font_size = 25, text_rgb = white, text = "Main Menu", action=GameState.TITLE)
     buttons = RenderUpdates(menu_btn, title, first, second, third)
     return game_loop(screen, buttons)
+
+def game_over(screen, screen_height, center, game_loop, spaceship, spaceship_group, laser_group, alien_group, alien_laser_group):
+    game_over = UIPlain(center_position=(center, 200), font_size=70, text_rgb=white, text="GAME OVER")
+    final_score = UIPlain(center_position=(center, 300), font_size=30, text_rgb=white, text="Final Score : " + str(spaceship.score))
+    retry_btn = UIElement(center_position=(center, 400), font_size=30, text_rgb=white, text="Restart", action=GameState.NEWGAME)
+    menu_btn = UIElement(center_position=(center, 650), font_size=30, text_rgb=white, text="Main Menu", action=GameState.TITLE)
+    quit_btn = UIElement(center_position=(center, 700), font_size=30, text_rgb=white, text="Quit", action=GameState.QUIT)
+
+    spaceship_group.empty()
+    laser_group.empty()
+    alien_group.empty()
+    alien_laser_group.empty()
+    # rock_group.empty()
+    # rock_group_two.empty()
+    # all_enemies_lasers.empty()
+    # alien_still_group.empty()
+    # powerup_group.empty()
+    # big_boss_group.empty()
+    spaceship.reset(center, screen_height - 100, 3)
+    spaceship_group.add(spaceship)
+
+    buttons = RenderUpdates(game_over, final_score, retry_btn, menu_btn, quit_btn)
+    return game_loop(screen, buttons)

@@ -5,5 +5,5 @@ class GameState(Enum):
     TITLE = 0
     NEWGAME = 1
     HIGHSCORE = 2
-    # DEAD = 3
-    # NAME = 4
+    DEAD = 3
+    NAME = 4
