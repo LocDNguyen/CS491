@@ -170,6 +170,16 @@ class Alien(pygame.sprite.Sprite):
         screen_rect = screen.get_rect()
         return self.rect.right >= screen_rect.right or self.rect.left <= 0
     
+class Alien_Still(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+
+        super().__init__()
+        # Draw the enemy
+        self.image = pygame.image.load("Sprites/jet.png").convert_alpha()
+        #self.image = pygame.transform.scale(self.image, (32, 32))
+        self.rect = self.image.get_rect()
+        self.rect.center = [x, y]
+    
 class Alien_Laser(pygame.sprite.Sprite):
     def __init__(self, x, y, orientation):
         pygame.sprite.Sprite.__init__(self)
@@ -256,8 +266,10 @@ alien_laser_group = pygame.sprite.Group()
 rock_group = pygame.sprite.Group()
 rock_group_two = pygame.sprite.Group()
 all_enemy_lasers = pygame.sprite.Group()
+alien_still_group = pygame.sprite.Group()
+falling_lasers = pygame.sprite.Group()
 
-spaceship = Spaceship(center, screen_height - 100, 3)
+spaceship = Spaceship(center, screen_height - 100, 100)
 spaceship_group.add(spaceship)
 
 
@@ -281,6 +293,7 @@ def showSprites():
     rock_group.draw(screen)
     rock_group_two.draw(screen)
     all_enemy_lasers.draw(screen)
+    falling_lasers.draw(screen)
 
 
 def game_loop(screen, buttons):
@@ -306,10 +319,13 @@ def play():
     run = True
     last_alien_shot = pygame.time.get_ticks()
     end_timer_for_first_laser_mech = pygame.time.get_ticks()
+    ender_timer = pygame.time.get_ticks()
     create_aliens()
     pressedEscToBegin = True
     pausedText = False
     stop = 0
+    move_on = 10
+    stop_making = 0
     while run:
         dt = clock.tick(60) / 500.0
         time_now = pygame.time.get_ticks()
@@ -344,9 +360,7 @@ def play():
             if len(alien_group) == 0 and len(rock_group) == 0 and stop == 0:
                 rockCover = Rock_Hori(screen_width + 40, 500)
                 rock_group.add(rockCover)
-                print('create rock')
             elif len(rock_group) == 1 and stop == 0:
-                print('in rock mech')
                 if time_now - end_timer_for_first_laser_mech > 300:
                     for row in range(1):
                         for item in range(50):
@@ -371,12 +385,39 @@ def play():
                 if rockCover.rect.top < 200:
                     stop += 1
 
+            if stop == 2:
+                if time_now - end_timer_for_first_laser_mech > 70:
+                    if stop_making == 0:
+                        for row in range(1):
+                            for item in range(45):
+                                # Enemy(buffer to the left + pixels apart, buffer at the top + pixels apart)
+                                enemy = Alien_Still((10 + item * 20), (-20 + row * 50))
+                                alien_still_group.add(enemy)
+                            stop_making = 1
+                    print(time_now - last_alien_shot)
+                    print(len(all_enemy_lasers))
+                    print(alien_cooldown)
+                    if time_now - last_alien_shot > alien_cooldown and len(falling_lasers) < 200:
+                        attacking_enemy = random.choice(alien_still_group.sprites())
+                        enemy_laser = Alien_Laser(attacking_enemy.rect.centerx, attacking_enemy.rect.bottom, True)
+                        falling_lasers.add(enemy_laser)
+                        end_timer_for_first_laser_mech = time_now
+                if move_on > 0:
+                    if time_now - ender_timer > 2500:
+                        move_on -= 1
+                        ender_timer = time_now
+                if move_on == 0:
+                    alien_still_group.empty()
+                    stop_making = 0
+                    stop += 1
+
             laser_group.update()
             alien_group.update()
             alien_laser_group.update()
             all_enemy_lasers.update()
             rock_group.update()
             rock_group_two.update()
+            falling_lasers.update()
 
         if spaceship.alive:
             if not pause.paused:
