@@ -8,7 +8,7 @@ from buttons import UIPlain, UIElement, draw_text
 from gamestate import GameState
 from highscore import set_highscore
 from testscreen import title_screen, highscore, game_over, white
-from sprites import PlayerSprite, AlienSprites, AlienLasers
+from sprites import PlayerSprite, AlienSprites
 from constants import *
 from pause import *
 
@@ -32,6 +32,8 @@ screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption('Space Invaders Frontier')
 bg = pygame.Surface(screen.get_size())
 bg.fill((0, 0, 0))
+bg2 = pygame.image.load("Sprites/background8.png").convert_alpha()
+bg2 = pygame.transform.scale(bg2, (screen_width, screen_height))
 
 class Spaceship(pygame.sprite.Sprite):
     def __init__(self, x, y, health):
@@ -56,14 +58,14 @@ class Spaceship(pygame.sprite.Sprite):
             if (key[pygame.K_DOWN] and self.rect.bottom < screen_height):
                 self.rect.y += self.speed
                 #self.direction = DOWN
-            if (key[pygame.K_UP] and key[pygame.K_LEFT]):
-                self.direction = LEFTUP
-            if (key[pygame.K_DOWN] and key[pygame.K_LEFT]):
-                self.direction = LEFTDOWN
-            if (key[pygame.K_UP] and key[pygame.K_RIGHT]):
-                self.direction = RIGHTUP
-            if (key[pygame.K_DOWN] and key[pygame.K_RIGHT]):
-                self.direction = RIGHTDOWN
+            # if (key[pygame.K_UP] and key[pygame.K_LEFT]):
+            #     self.direction = LEFTUP
+            # if (key[pygame.K_DOWN] and key[pygame.K_LEFT]):
+            #     self.direction = LEFTDOWN
+            # if (key[pygame.K_UP] and key[pygame.K_RIGHT]):
+            #     self.direction = RIGHTUP
+            # if (key[pygame.K_DOWN] and key[pygame.K_RIGHT]):
+            #     self.direction = RIGHTDOWN
 
             time_now = pygame.time.get_ticks()
             if key[pygame.K_SPACE] and time_now - self.last_shot > self.cooldown:
@@ -96,11 +98,16 @@ class Spaceship(pygame.sprite.Sprite):
         return STOP
     
     def check_collisions(self):
-        collisions = pygame.sprite.spritecollide(self, alien_group, False, pygame.sprite.collide_mask)
+        collisions = pygame.sprite.spritecollide(self, alien_group, True, pygame.sprite.collide_mask)
         if collisions:
             for alien in collisions:
                 alien.health -= alien.health
-            self.health_remaining -= 1
+            self.health_remaining -= self.health_remaining
+        if pygame.sprite.spritecollide(self, rock_group, False, pygame.sprite.collide_mask):
+            self.health_remaining -= self.health_remaining
+        if pygame.sprite.spritecollide(self, rock_group_two, False, pygame.sprite.collide_mask):
+            self.health_remaining -= self.health_remaining
+        
 
     def reset(self, x, y, health):
         self.image = pygame.image.load("Sprites/jetv2.png").convert_alpha()
@@ -126,15 +133,28 @@ class Laser(pygame.sprite.Sprite):
         self.image = self.check_laser_image()
         self.rect = self.image.get_rect()
         self.rect.center = [x, y]
+        self.damage = 0
 
     def check_collisions(self):
         collisions = pygame.sprite.groupcollide(alien_group, laser_group, False, True, pygame.sprite.collide_mask)
         if collisions and not spaceship.laser2:
             for alien in collisions:
-                alien.health -= 1
+                alien.hit = True
+                damage = round(random.uniform(0.1, 1), 2)
+                alien.health -= damage
+                draw_text(alien.rect.x + 70, alien.rect.y + 60, str(damage), 25, white, screen)
         elif collisions and spaceship.laser2:
             for alien in collisions:
                 alien.health -= 3
+        
+    def check_boss_collisions(self):
+        collisions = pygame.sprite.groupcollide(big_boss, laser_group, False, True, pygame.sprite.collide_mask)
+        if collisions and not spaceship.laser2:
+            for boss in collisions:
+                boss.health -= 1
+        elif collisions and spaceship.laser2:
+            for boss in collisions:
+                boss.health -= 3
 
     def check_laser_image(self):
         if spaceship.laser2:
@@ -150,6 +170,7 @@ class Laser(pygame.sprite.Sprite):
         if self.rect.bottom < 0:
             self.kill()
         self.check_collisions()
+        self.check_boss_collisions()
         # self.check_boss_collisions()
 
 
@@ -165,23 +186,41 @@ class Alien(pygame.sprite.Sprite):
         self.health = health
         self.type = type
         self.alive = True
+        self.hit = False
         self.sprites = AlienSprites(self)
 
     def update(self, dt):
         self.sprites.update(dt)
-        if self.alive:
-            self.mask = pygame.mask.from_surface(self.image)
-            self.rect.x += self.move_direction
-            if self.health <= 0:
-                spaceship.score += 100
-                self.alive = False
-            if spaceship.health_remaining <= 0:
-                pause.setPause(pauseTime = 5.5, func = GameState.NAME)
-                spaceship.alive = False
-        #self.move_counter += 1
-        # if abs(self.move_counter) > 75:
-        #     self.move_direction *= -1
-        #     self.move_counter *= self.move_direction
+        if self.type == 'blue':
+            if self.alive:
+                self.mask = pygame.mask.from_surface(self.image)
+                self.rect.x += self.move_direction
+                if self.health <= 0:
+                    spaceship.score += 100
+                    self.alive = False
+                if spaceship.health_remaining <= 0:
+                    pause.setPause(pauseTime = 5.5, func = GameState.NAME)
+                    spaceship.alive = False
+            else:
+                if self.sprites.animations[2].finished:
+                    self.kill()
+        # if self.type == 'green':
+        #     if self.alive:
+        #         self.mask = pygame.mask.from_surface(self.image)
+        #         if self.rect.x < spaceship.rect.x:
+        #             self.rect.x += 2
+        #         if self.rect.x > spaceship.rect.x:
+        #             self.rect.x -= 2
+        #         if self.rect.y < spaceship.rect.y:
+        #             self.rect.y += 2
+        #         if self.rect.y > spaceship.rect.y:
+        #             self.rect.y -= 2
+        #         if self.health <= 0:
+        #             spaceship.score += 100
+        #             self.alive = False
+        #         if spaceship.health_remaining <= 0:
+        #             pause.setPause(pauseTime = 5.5, func = GameState.NAME)
+        #             spaceship.alive = False
             
     def change_direction(self):
         for alien in alien_group:
@@ -192,7 +231,7 @@ class Alien(pygame.sprite.Sprite):
         return self.rect.right >= screen_rect.right or self.rect.left <= 0
     
 class Alien_Still(pygame.sprite.Sprite):
-    def __init__(self, x, y):
+    def __init__(self, x, y, type):
 
         super().__init__()
         # Draw the enemy
@@ -200,26 +239,57 @@ class Alien_Still(pygame.sprite.Sprite):
         #self.image = pygame.transform.scale(self.image, (32, 32))
         self.rect = self.image.get_rect()
         self.rect.center = [x, y]
+        self.type = type
+
+class Big_Boss(pygame.sprite.Sprite):
+    def __init__(self, x, y, health):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.image.load("Sprites/red_alien1.png").convert_alpha()
+        self.image = pygame.transform.scale(self.image, (700, 200))
+        #self.image = pygame.transform.rotate(self.image, 180)
+        self.rect = self.image.get_rect()
+        self.rect.center = [x, y]
+        self.move_down = 2
+        self.move_direction = 0
+        self.health = health
+
+    def update(self, dt):
+        self.mask = pygame.mask.from_surface(self.image)
+        self.rect.y += self.move_down
+        self.rect.x += self.move_direction
+        if self.rect.bottom > screen_height + 75:
+            spaceship.health_remaining -= 10
+            spaceship.score -= 10000000
+            self.kill()
+        if self.health <= 0:
+            spaceship.score += 100000
+            self.kill()
+        #self.move_counter += 1
+        # if abs(self.move_counter) > 75:
+        #     self.move_direction *= -1
+        #     self.move_counter *= self.move_direction
+
+    def check_edges(self):
+        screen_rect = screen.get_rect()
+        return self.rect.right >= screen_rect.right or self.rect.left <= 0
     
 class Alien_Laser(pygame.sprite.Sprite):
     def __init__(self, x, y, orientation, alien):
         pygame.sprite.Sprite.__init__(self)
         self.orientation = orientation
         self.type = alien
-        self.sprites = AlienLasers(self)
         if self.orientation:
             self.image = pygame.image.load("Sprites/sprite_0.png").convert_alpha()
-            self.image = pygame.transform.scale(self.image, (20, 20))
+            self.image = pygame.transform.scale(self.image, (32, 32))
             self.image = pygame.transform.rotate(self.image, 180)
         else:
             self.image = pygame.image.load("Sprites/sprite_0.png").convert_alpha()
-            self.image = pygame.transform.scale(self.image, (20, 20))
+            self.image = pygame.transform.scale(self.image, (32, 32))
             self.image = pygame.transform.rotate(self.image, 90)
         self.rect = self.image.get_rect()
         self.rect.center = [x, y]
 
     def update(self, dt):
-        self.sprites.update(dt)
         if self.orientation:
             self.rect.y += 4
         else:
@@ -238,6 +308,23 @@ class Alien_Laser(pygame.sprite.Sprite):
         if spaceship.health_remaining <= 0:
             pause.setPause(pauseTime = 5.5, func = GameState.NAME)
             spaceship.alive = False
+
+class Big_Alien_Laser(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.image.load("Sprites/sprite_0.png").convert_alpha()
+        self.image = pygame.transform.rotate(self.image, 180)
+        self.image = pygame.transform.scale(self.image, (64, 64))
+        self.rect = self.image.get_rect()
+        self.rect.center = [x, y]
+
+    def update(self, dt):
+        self.rect.y += 4
+        if self.rect.top > screen_height:
+            self.kill()
+        if pygame.sprite.spritecollide(self, spaceship_group, False, pygame.sprite.collide_mask):
+            self.kill()
+            spaceship.health_remaining -= 10
 
 class Rock_Hori(pygame.sprite.Sprite):
     def __init__(self, x, y):
@@ -258,8 +345,8 @@ class Rock_Hori(pygame.sprite.Sprite):
         if self.rect.right < 0:
             self.kill()
         self.mask = pygame.mask.from_surface(self.image)
-        #if pygame.sprite.spritecollide(self, spaceship_group, True):
-        #    self.kill()
+        if pygame.sprite.spritecollide(self, spaceship_group, True):
+           self.kill()
 
 class Rock_Vert(pygame.sprite.Sprite):
     def __init__(self, x, y):
@@ -280,8 +367,8 @@ class Rock_Vert(pygame.sprite.Sprite):
         if self.rect.bottom < 0:
             self.kill()
         self.mask = pygame.mask.from_surface(self.image)
-        #if pygame.sprite.spritecollide(self, spaceship_group, True):
-        #    self.kill()
+        if pygame.sprite.spritecollide(self, spaceship_group, True):
+           self.kill()
 
 
 spaceship_group = pygame.sprite.Group()
@@ -293,15 +380,16 @@ rock_group_two = pygame.sprite.Group()
 all_enemy_lasers = pygame.sprite.Group()
 alien_still_group = pygame.sprite.Group()
 falling_lasers = pygame.sprite.Group()
+big_boss = pygame.sprite.Group()
 
-spaceship = Spaceship(center, screen_height - 100, 3)
+spaceship = Spaceship(center, screen_height - 100, 99)
 spaceship_group.add(spaceship)
 
 
 def create_aliens():
         for row in range(rows):
             for col in range(cols):
-                alien = Alien(100 + col * 100, 100 + row * 70, 1, 'blue')
+                alien = Alien(100 + col * 100, 100 + row * 70, 2, 'blue')
                 alien_group.add(alien)
 
 # for row_number in range(number_rows):
@@ -328,6 +416,7 @@ def showSprites():
     rock_group_two.draw(screen)
     all_enemy_lasers.draw(screen)
     falling_lasers.draw(screen)
+    big_boss.draw(screen)
 
 
 def game_loop(screen, buttons):
@@ -352,6 +441,7 @@ def game_loop(screen, buttons):
 def play():
     run = True
     last_alien_shot = pygame.time.get_ticks()
+    last_big_shot = pygame.time.get_ticks()
     end_timer_for_first_laser_mech = pygame.time.get_ticks()
     ender_timer = pygame.time.get_ticks()
     create_aliens()
@@ -359,12 +449,13 @@ def play():
     pausedText = False
     alternate = True
     stop = 0
+    move = 0
     move_on = 10
     stop_making = 0
     while run:
         dt = clock.tick(60) / 500.0
         time_now = pygame.time.get_ticks()
-        screen.blit(bg, (0, 0))
+        screen.blit(bg2, (0, 0))
 
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
@@ -381,9 +472,9 @@ def play():
                 run = False
 
         if pressedEscToBegin:
-            draw_text(screen_width, 450, "Press Escape to Begin", 37, white, screen)
+            draw_text(screen_width / 2, 450, "Press Escape to Begin", 37, white, screen)
         if pausedText:
-            draw_text(screen_width, 450, "Paused", 37, white, screen)
+            draw_text(screen_width / 2, 450, "Paused", 37, white, screen)
 
         if not pause.paused:
             if time_now - last_alien_shot > alien_cooldown and len(alien_laser_group) < 5 and len(alien_group) > 0:
@@ -443,7 +534,7 @@ def play():
                             stop_making = 1
                     if time_now - last_alien_shot > alien_cooldown and len(falling_lasers) < 200:
                         attacking_enemy = random.choice(alien_still_group.sprites())
-                        enemy_laser = Alien_Laser(attacking_enemy.rect.centerx, attacking_enemy.rect.bottom, True)
+                        enemy_laser = Alien_Laser(attacking_enemy.rect.centerx, attacking_enemy.rect.bottom, True, None)
                         falling_lasers.add(enemy_laser)
                         end_timer_for_first_laser_mech = time_now
                 if move_on > 0:
@@ -455,13 +546,67 @@ def play():
                     stop_making = 0
                     stop += 1
 
+            #Homing enemies
+            #Spawn them outside screen
+            #Spawm them in intervals at random coordinates
+            #Have a counter to count how many enemies have died in order to stop mech
+            if stop == 3 and len(falling_lasers) == 0:
+                alien = Alien(screen_width + 'random number here', screen_height + 'random number here', 2, 'green')
+                alien_group.add(alien)
+
+            #Big Boss Mech
+            if stop == 4 and len(alien_group) == 0:
+                boss = Big_Boss(screen_width / 2 - 35, -300, 1)
+                big_boss.add(boss)
+                stop += 1
+                spawn = True
+
+            if stop == 5:
+                if len(big_boss) == 1:
+                    for boss in big_boss:
+                        if boss.rect.bottom == 200 and move == 0:
+                            boss.move_down = 0
+                            boss.move_direction = 1
+                            move += 1
+                        if move == 1:
+                            if boss.check_edges():
+                                boss.move_direction *= -1
+                            if stop_making == 0:
+                                for row in range(1):
+                                    for item in range(13):
+                                        # Enemy(buffer to the left + pixels apart, buffer at the top + pixels apart)
+                                        enemy = Alien_Still((30 + item * 60), (40 + row * 70), None)
+                                        alien_still_group.add(enemy)
+                                    stop_making = 1
+                            if time_now - last_big_shot > 1000:
+                                for ele in range(len(alien_still_group)):
+                                    if ele != len(alien_still_group) - 1:
+                                        attacking_enemy = random.choice(alien_still_group.sprites())
+                                        enemy_laser = Alien_Laser(attacking_enemy.rect.centerx, attacking_enemy.rect.bottom, True, None)
+                                        all_enemy_lasers.add(enemy_laser)
+                                shooting_alien = random.choice(big_boss.sprites())
+                                alien_laser = Big_Alien_Laser(shooting_alien.rect.centerx - 105, shooting_alien.rect.bottom - 270)
+                                alien_laser2 = Big_Alien_Laser(shooting_alien.rect.centerx - 195, shooting_alien.rect.bottom - 300)
+                                alien_laser3 = Big_Alien_Laser(shooting_alien.rect.centerx - 285, shooting_alien.rect.bottom - 330)
+                                alien_laser4 = Big_Alien_Laser(shooting_alien.rect.centerx + 170, shooting_alien.rect.bottom - 270)
+                                alien_laser5 = Big_Alien_Laser(shooting_alien.rect.centerx + 260, shooting_alien.rect.bottom - 300)
+                                alien_laser6 = Big_Alien_Laser(shooting_alien.rect.centerx + 350, shooting_alien.rect.bottom - 330)
+                                list = [alien_laser, alien_laser2, alien_laser3, alien_laser4, alien_laser5, alien_laser6]
+                                shooting = random.choice(list)
+                                alien_laser_group.add(shooting)
+                                last_big_shot = time_now
+                else:
+                    alien_still_group.empty()
+                    stop += 1
+
             laser_group.update()
             alien_group.update(dt)
             alien_laser_group.update(dt)
             all_enemy_lasers.update(dt)
             rock_group.update()
             rock_group_two.update()
-            falling_lasers.update()
+            falling_lasers.update(dt)
+            big_boss.update(dt)
 
         if spaceship.alive:
             if not pause.paused:

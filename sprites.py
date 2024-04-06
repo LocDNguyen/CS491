@@ -104,12 +104,16 @@ class AlienSprites(Spritesheet):
 
     def defineAnimations(self):
         self.animations[MOVE] = Animator(((0, 64), (64, 64)), speed=1)
-        self.animations[EXPLODE] = Animator(((0, 0), (64, 0), (128, 0)), loop = False)
+        self.animations[EXPLODE] = Animator(((0, 0), (64, 0), (128, 0), (192, 0), (256, 0), (320, 0), (384, 0), (448, 0), (512, 0), (576, 0)), loop = False)
+        self.animations[HIT] = Animator(((128, 64), (128, 64)))
 
     def update(self, dt):
         if self.character.alive:
             if self.character.type == 'blue':
                 self.character.image = self.getImage(*self.animations[MOVE].update(dt))
+                if self.character.hit == True:
+                    self.character.image = self.getImage(*self.animations[HIT].update(dt))
+                    self.character.hit = False
         else:
             if self.character.type == 'blue':
                 self.character.image = self.getImage(*self.animations[EXPLODE].update(dt))
@@ -152,21 +156,21 @@ class AlienSprites(Spritesheet):
     def getImage(self, x, y):
         return Spritesheet.getImage3(self, x, y, 64, 64)
     
-class AlienLasers(Spritesheet):
-    def __init__(self, character):
-        Spritesheet.__init__(self)
-        self.x = {ABLUE:0, APINK:2, AGREEN:4, APURPLE:6}
-        self.character = character
-        self.character.image = self.getStartImage()
-        self.animations = {}
-        self.defineAnimations()
+# class AlienLasers(Spritesheet):
+#     def __init__(self, character):
+#         Spritesheet.__init__(self)
+#         self.x = {ABLUE:0, APINK:2, AGREEN:4, APURPLE:6}
+#         self.character = character
+#         self.character.image = self.getStartImage()
+#         self.animations = {}
+#         self.defineAnimations()
 
-    def defineAnimations(self):
-        self.animations[SHOOT] = Animator(((0, 0), (0, 0)), speed=1)
+#     def defineAnimations(self):
+#         self.animations[SHOOT] = Animator(((0, 0), (0, 0)), speed=1)
 
-    def update(self, dt):
-        if self.character.type == 'blue':
-            self.character.image = self.getImage(*self.animations[SHOOT].update(dt))
+#     def update(self, dt):
+#         if self.character.type == 'blue':
+#             self.character.image = self.getImage(*self.animations[SHOOT].update(dt))
         # if self.character.name == 7:
         #     if self.character.direction == LEFT:
         #         self.character.image = self.getImage(*self.animations[CLEFT].update(dt))
@@ -188,23 +192,23 @@ class AlienLasers(Spritesheet):
         #     elif self.character.direction == UP:
         #        self.character.image = self.getImage2(8, 4)
 
-    def getStartImage(self):
-        if self.character.type == 'blue':
-            return self.getImage(0, 0)
-        # if self.character.name == 5:
-        #     return self.getImage(10.95, 10)
-        # if self.character.name == 6:
-        #     return self.getImage(7.4, 12)
-        # if self.character.name == 7:
-        #     return self.getImage(7.4, 14)
+    # def getStartImage(self):
+    #     if self.character.type == 'blue':
+    #         return self.getImage(0, 0)
+    #     # if self.character.name == 5:
+    #     #     return self.getImage(10.95, 10)
+    #     # if self.character.name == 6:
+    #     #     return self.getImage(7.4, 12)
+    #     # if self.character.name == 7:
+    #     #     return self.getImage(7.4, 14)
 
-    def reset(self):
-        for key in list(self.animations.keys()):
-            self.animations[key].reset()
-        self.character.image = self.getStartImage()
+    # def reset(self):
+    #     for key in list(self.animations.keys()):
+    #         self.animations[key].reset()
+    #     self.character.image = self.getStartImage()
 
-    def getImage(self, x, y):
-        return Spritesheet.getImage3(self, x, y, 64, 64)
+    # def getImage(self, x, y):
+    #     return Spritesheet.getImage3(self, x, y, 64, 64)
 
 # class LifeSprites(Spritesheet):
 #     def __init__(self, numlives):

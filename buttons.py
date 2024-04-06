@@ -73,5 +73,5 @@ def create_surface_with_text(text, font_size, text_rgb):
 def draw_text(x, y, text, font_size, text_rgb, screen):
     font = pygame.font.SysFont('freesansbold.ttf', font_size)
     img = font.render(text, True, text_rgb)
-    text_rect = img.get_rect(center=(x / 2, y))
+    text_rect = img.get_rect(center=(x, y))
     screen.blit(img, text_rect)
