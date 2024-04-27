@@ -7,9 +7,7 @@ class Pause(object):
 
     def update(self, dt):
         if self.pauseTime is not None:
-            print(self.timer)
             self.timer += dt
-            print(self.timer)
             if self.timer >= self.pauseTime:
                 self.timer = 0
                 self.paused = False

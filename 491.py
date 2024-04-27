@@ -24,8 +24,8 @@ clock = pygame.time.Clock()
 
 pause = Pause(True)
 
-rows = 3
-cols = 7
+rows = 1#3
+cols = 1#7
 alien_cooldown = 1000
 
 screen = pygame.display.set_mode((screen_width, screen_height))
@@ -107,6 +107,9 @@ class Spaceship(pygame.sprite.Sprite):
             self.health_remaining -= self.health_remaining
         if pygame.sprite.spritecollide(self, rock_group_two, False, pygame.sprite.collide_mask):
             self.health_remaining -= self.health_remaining
+        if self.health_remaining <= 0:
+            pause.setPause(pauseTime = 5.5, func = GameState.NAME)
+            spaceship.alive = False
         
         
 
@@ -117,7 +120,7 @@ class Spaceship(pygame.sprite.Sprite):
         self.rect.center = [x, y]
         self.last_shot = pygame.time.get_ticks()
         self.speed = 8
-        self.cooldown = 600
+        self.cooldown = 400
         self.health_remaining = health
         self.score = 0
         self.laser2 = False
@@ -172,7 +175,6 @@ class Laser(pygame.sprite.Sprite):
             self.kill()
         self.check_collisions()
         self.check_boss_collisions()
-        # self.check_boss_collisions()
 
 
 class Alien(pygame.sprite.Sprite):
@@ -198,28 +200,28 @@ class Alien(pygame.sprite.Sprite):
                 if self.health <= 0:
                     spaceship.score += 100
                     self.alive = False
-                if spaceship.health_remaining <= 0:
-                    pause.setPause(pauseTime = 5.5, func = GameState.NAME)
-                    spaceship.alive = False
+                # if spaceship.health_remaining <= 0:
+                #     pause.setPause(pauseTime = 5.5, func = GameState.NAME)
+                #     spaceship.alive = False
             else:
                 if self.sprites.animations[2].finished:
                     self.kill()
         if self.type == 'pink':
             if self.alive:
                 if self.rect.x < spaceship.rect.x:
-                    self.rect.x += 2
+                    self.rect.x += 1
                 if self.rect.x > spaceship.rect.x:
-                    self.rect.x -= 2
+                    self.rect.x -= 1
                 if self.rect.y < spaceship.rect.y:
-                    self.rect.y += 2
+                    self.rect.y += 1
                 if self.rect.y > spaceship.rect.y:
-                    self.rect.y -= 2
+                    self.rect.y -= 1
                 if self.health <= 0:
                     spaceship.score += 100
                     self.alive = False
-                if spaceship.health_remaining <= 0:
-                    pause.setPause(pauseTime = 5.5, func = GameState.NAME)
-                    spaceship.alive = False
+                # if spaceship.health_remaining <= 0:
+                #     pause.setPause(pauseTime = 5.5, func = GameState.NAME)
+                #     spaceship.alive = False
             else:
                 if self.sprites.animations[2].finished:
                     self.kill()
@@ -308,10 +310,6 @@ class Alien_Laser(pygame.sprite.Sprite):
         if pygame.sprite.spritecollide(self, rock_group_two, False, pygame.sprite.collide_mask):
             self.kill()
 
-        if spaceship.health_remaining <= 0:
-            pause.setPause(pauseTime = 5.5, func = GameState.NAME)
-            spaceship.alive = False
-
 class Big_Alien_Laser(pygame.sprite.Sprite):
     def __init__(self, x, y):
         pygame.sprite.Sprite.__init__(self)
@@ -350,9 +348,9 @@ class Rock_Hori(pygame.sprite.Sprite):
         # if pygame.sprite.spritecollide(self, spaceship_group, True):
         #    self.kill()
         
-        if spaceship.health_remaining <= 0:
-            pause.setPause(pauseTime = 5.5, func = GameState.NAME)
-            spaceship.alive = False
+        # if spaceship.health_remaining <= 0:
+        #     pause.setPause(pauseTime = 5.5, func = GameState.NAME)
+        #     spaceship.alive = False
 
 class Rock_Vert(pygame.sprite.Sprite):
     def __init__(self, x, y):
@@ -376,9 +374,9 @@ class Rock_Vert(pygame.sprite.Sprite):
         # if pygame.sprite.spritecollide(self, spaceship_group, True):
         #    self.kill()
 
-        if spaceship.health_remaining <= 0:
-            pause.setPause(pauseTime = 5.5, func = GameState.NAME)
-            spaceship.alive = False
+        # if spaceship.health_remaining <= 0:
+        #     pause.setPause(pauseTime = 5.5, func = GameState.NAME)
+        #     spaceship.alive = False
 
 
 spaceship_group = pygame.sprite.Group()
@@ -446,6 +444,7 @@ def play():
     last_big_shot = pygame.time.get_ticks()
     end_timer_for_first_laser_mech = pygame.time.get_ticks()
     ender_timer = pygame.time.get_ticks()
+    end_timer_for_spawning_pink_aliens = pygame.time.get_ticks()
     create_aliens()
     pressedEscToBegin = True
     pausedText = False
@@ -454,6 +453,12 @@ def play():
     move = 0
     move_on = 10
     stop_making = 0
+    start_making_pink = 0
+    numOfPinkSpawned = 0
+    list_for_x_y_of_pink_alien = [(screen_width + 50, 50), (screen_width + 50, 100), (screen_width + 50, 200), (screen_width + 50, 300), 
+                                  (-50, 50), (-50, 100), (-50, 200), (-50, 300),
+                                  (50, -50), (100, -50), (200, -50), (300, -50),
+                                  (50, screen_height + 50), (100, screen_height + 50), (200, screen_height + 50), (300, screen_height + 50),]
     while run:
         dt = clock.tick(60) / 500.0
         time_now = pygame.time.get_ticks()
@@ -479,20 +484,29 @@ def play():
             draw_text(screen_width / 2, 450, "Paused", 37, white, screen)
 
         if not pause.paused:
-            if time_now - last_alien_shot > alien_cooldown and len(alien_laser_group) < 5 and len(alien_group) > 0:
-                shooting_alien = random.choice(alien_group.sprites())
-                alien_laser = Alien_Laser(shooting_alien.rect.centerx, shooting_alien.rect.bottom, True, shooting_alien)
-                alien_laser_group.add(alien_laser)
-                last_alien_shot = time_now
+            if start_making_pink == 0:
+                if time_now - last_alien_shot > alien_cooldown and len(alien_laser_group) < 5 and len(alien_group) > 0:
+                    shooting_alien = random.choice(alien_group.sprites())
+                    alien_laser = Alien_Laser(shooting_alien.rect.centerx, shooting_alien.rect.bottom, True, shooting_alien)
+                    alien_laser_group.add(alien_laser)
+                    last_alien_shot = time_now
 
             #Homing enemies
             #Spawn them outside screen
             #Spawm them in intervals at random coordinates
             #Have a counter to count how many enemies have died in order to stop mech
             if len(alien_group) == 0 and stop == 0:
-                alien = Alien(screen_width + 50, 50, 2, 'pink')
-                alien_group.add(alien)
-                stop += 1
+                start_making_pink = 1
+            if start_making_pink == 1:
+                if time_now - end_timer_for_spawning_pink_aliens > 1000:
+                    spawn = random.choice(list_for_x_y_of_pink_alien)
+                    alien = Alien(spawn[0], spawn[1], 0.1, 'pink')
+                    alien_group.add(alien)
+                    end_timer_for_spawning_pink_aliens = time_now
+                    numOfPinkSpawned += 1
+                if numOfPinkSpawned == 20:
+                    start_making_pink += 1
+                    stop += 1
 
             #First Mech
             if len(alien_group) == 0 and len(rock_group) == 0 and stop == 1:
@@ -559,7 +573,7 @@ def play():
 
             #Big Boss Mech
             if stop == 4 and len(alien_group) == 0:
-                boss = Big_Boss(screen_width / 2 - 35, -300, 5)
+                boss = Big_Boss(screen_width / 2, -300, 5)
                 big_boss.add(boss)
                 stop += 1
                 spawn = True
