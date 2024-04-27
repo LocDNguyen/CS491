@@ -200,9 +200,6 @@ class Alien(pygame.sprite.Sprite):
                 if self.health <= 0:
                     spaceship.score += 100
                     self.alive = False
-                # if spaceship.health_remaining <= 0:
-                #     pause.setPause(pauseTime = 5.5, func = GameState.NAME)
-                #     spaceship.alive = False
             else:
                 if self.sprites.animations[2].finished:
                     self.kill()
@@ -219,9 +216,6 @@ class Alien(pygame.sprite.Sprite):
                 if self.health <= 0:
                     spaceship.score += 100
                     self.alive = False
-                # if spaceship.health_remaining <= 0:
-                #     pause.setPause(pauseTime = 5.5, func = GameState.NAME)
-                #     spaceship.alive = False
             else:
                 if self.sprites.animations[2].finished:
                     self.kill()
@@ -251,7 +245,6 @@ class Big_Boss(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.image.load("Sprites/red_alien1.png").convert_alpha()
         self.image = pygame.transform.scale(self.image, (700, 200))
-        #self.image = pygame.transform.rotate(self.image, 180)
         self.rect = self.image.get_rect()
         self.rect.center = [x, y]
         self.move_down = 2
@@ -269,10 +262,6 @@ class Big_Boss(pygame.sprite.Sprite):
         if self.health <= 0:
             spaceship.score += 100000
             self.kill()
-        #self.move_counter += 1
-        # if abs(self.move_counter) > 75:
-        #     self.move_direction *= -1
-        #     self.move_counter *= self.move_direction
 
     def check_edges(self):
         screen_rect = screen.get_rect()
@@ -345,12 +334,6 @@ class Rock_Hori(pygame.sprite.Sprite):
         if self.rect.right < 0:
             self.kill()
         self.mask = pygame.mask.from_surface(self.image)
-        # if pygame.sprite.spritecollide(self, spaceship_group, True):
-        #    self.kill()
-        
-        # if spaceship.health_remaining <= 0:
-        #     pause.setPause(pauseTime = 5.5, func = GameState.NAME)
-        #     spaceship.alive = False
 
 class Rock_Vert(pygame.sprite.Sprite):
     def __init__(self, x, y):
@@ -371,12 +354,6 @@ class Rock_Vert(pygame.sprite.Sprite):
         if self.rect.bottom < 0:
             self.kill()
         self.mask = pygame.mask.from_surface(self.image)
-        # if pygame.sprite.spritecollide(self, spaceship_group, True):
-        #    self.kill()
-
-        # if spaceship.health_remaining <= 0:
-        #     pause.setPause(pauseTime = 5.5, func = GameState.NAME)
-        #     spaceship.alive = False
 
 
 spaceship_group = pygame.sprite.Group()
