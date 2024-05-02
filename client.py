@@ -6,7 +6,7 @@ import threading
 import time
 import pygame.event
 import game
-from ImageLabel import ImageLabel
+# from ImageLabel import ImageLabel
 from constants import SERVER_IP, SERVER_PORT, LOADING_IMG, WHITE_CONTROLS, BLACK_CONTROLS, SCREEN_WIDTH, SCREEN_HEIGHT, CENTER
 import chatlib
 import tkinter as tk
@@ -105,8 +105,8 @@ class Client:
             """Getting the info the client provided, checking it and connecting to the server.
             If the game starts after that, starting the game. If the game is waiting for another player, displaying a loading screen"""
             # Getting info from entry fields
-            ip_txt = "192.168.254.12"
-            port_txt = "5555"
+            ip_txt = SERVER_IP
+            port_txt = SERVER_PORT
             ipaddress.ip_address(ip_txt)
 
             status = self.connect()  # Connecting to the server

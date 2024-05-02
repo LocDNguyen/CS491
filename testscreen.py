@@ -13,10 +13,11 @@ def title_screen(screen, center, game_loop):
     title_2 =  UIPlain(center_position = (center, 290), font_size = 110, text_rgb = white, text = "FRONTIER")
     title_3 =  UIPlain(center_position = (center + 10, 170), font_size = 110, text_rgb = blue, text = "SPACE INVADERS")
     title_4 =  UIPlain(center_position = (center + 10, 300), font_size = 110, text_rgb = blue, text = "FRONTIER")
-    start_btn = UIElement(center_position = (center, 550), font_size = 30, text_rgb = white, text = "PLAY GAME", action=GameState.NEWGAME)
+    start_btn = UIElement(center_position = (center, 480), font_size = 30, text_rgb = white, text = "PLAY GAME", action=GameState.NEWGAME)
+    multiplayer_btn = UIElement(center_position = (center, 550), font_size = 30, text_rgb = white, text = "MULTIPLAYER", action=GameState.MULTIPLAYER)
     score_btn = UIElement(center_position = (center, 620), font_size = 30, text_rgb = white, text = "HIGH SCORES", action=GameState.HIGHSCORE)
     quit_btn = UIElement(center_position = (center, 690), font_size = 30, text_rgb = white, text = "QUIT", action=GameState.QUIT)
-    buttons = RenderUpdates(start_btn, score_btn, quit_btn, title_1, title_2, title_3, title_4)
+    buttons = RenderUpdates(start_btn, multiplayer_btn, score_btn, quit_btn, title_1, title_2, title_3, title_4)
     return game_loop(screen, buttons)
 
 def highscore(screen, file_name, center, game_loop):
@@ -29,10 +30,10 @@ def highscore(screen, file_name, center, game_loop):
     buttons = RenderUpdates(menu_btn, title, first, second, third)
     return game_loop(screen, buttons)
 
-def game_over(screen, screen_height, center, game_loop, spaceship, spaceship_group, laser_group, alien_group, alien_laser_group):
+def game_over(screen, screen_height, center, game_loop, spaceship, spaceship_group, laser_group, alien_group, alien_laser_group, rock_group, rock_group_two, all_enemy_lasers, alien_still_group, falling_lasers, big_boss):
     game_over = UIPlain(center_position=(center, 200), font_size=70, text_rgb=white, text="GAME OVER")
     final_score = UIPlain(center_position=(center, 300), font_size=30, text_rgb=white, text="Final Score : " + str(spaceship.score))
-    retry_btn = UIElement(center_position=(center, 400), font_size=30, text_rgb=white, text="Restart", action=GameState.NEWGAME)
+    # retry_btn = UIElement(center_position=(center, 400), font_size=30, text_rgb=white, text="Restart", action=GameState.NEWGAME)
     menu_btn = UIElement(center_position=(center, 650), font_size=30, text_rgb=white, text="Main Menu", action=GameState.TITLE)
     quit_btn = UIElement(center_position=(center, 700), font_size=30, text_rgb=white, text="Quit", action=GameState.QUIT)
 
@@ -40,14 +41,23 @@ def game_over(screen, screen_height, center, game_loop, spaceship, spaceship_gro
     laser_group.empty()
     alien_group.empty()
     alien_laser_group.empty()
-    # rock_group.empty()
-    # rock_group_two.empty()
-    # all_enemies_lasers.empty()
-    # alien_still_group.empty()
+    rock_group.empty()
+    rock_group_two.empty()
+    all_enemy_lasers.empty()
+    alien_still_group.empty()
+    falling_lasers.empty()
     # powerup_group.empty()
-    # big_boss_group.empty()
+    big_boss.empty()
     spaceship.reset(center, screen_height - 100, 3)
     spaceship_group.add(spaceship)
 
-    buttons = RenderUpdates(game_over, final_score, retry_btn, menu_btn, quit_btn)
+    buttons = RenderUpdates(game_over, final_score, menu_btn, quit_btn) #retry_btn removed
+    return game_loop(screen, buttons)
+
+def freeze(screen, center, game_loop):
+    start_btn = UIElement(center_position = (center, 480), font_size = 30, text_rgb = white, text = "PLAY GAME", action=GameState.NEWGAME)
+    multiplayer_btn = UIElement(center_position = (center, 550), font_size = 30, text_rgb = white, text = "MULTIPLAYER", action=GameState.MULTIPLAYER)
+    score_btn = UIElement(center_position = (center, 620), font_size = 30, text_rgb = white, text = "HIGH SCORES", action=GameState.HIGHSCORE)
+    quit_btn = UIElement(center_position = (center, 690), font_size = 30, text_rgb = white, text = "QUIT", action=GameState.QUIT)
+    buttons = RenderUpdates(start_btn, multiplayer_btn, score_btn, quit_btn)
     return game_loop(screen, buttons)
