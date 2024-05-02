@@ -21,6 +21,12 @@ class Spritesheet(object):
         self.sheet4 = pygame.image.load("Sprites/pink_alien.png").convert()
         transcolor = self.sheet4.get_at((0,0))
         self.sheet4.set_colorkey(transcolor)
+        self.sheet5 = pygame.image.load("Sprites/red_alien.png").convert()
+        transcolor = self.sheet5.get_at((0,0))
+        self.sheet5.set_colorkey(transcolor)
+        self.sheet6 = pygame.image.load("Sprites/green_alien.png").convert()
+        transcolor = self.sheet6.get_at((0,0))
+        self.sheet6.set_colorkey(transcolor)
         #width = int(self.sheet.get_width() / BASETILEWIDTH * 9)
         #height = int(self.sheet.get_height() / BASETILEHEIGHT * 8)
         #self.sheet = pygame.transform.scale(self.sheet, (width, height))
@@ -48,6 +54,18 @@ class Spritesheet(object):
         #y *= TILEHEIGHT
         self.sheet4.set_clip(pygame.Rect(x, y, width, height))
         return self.sheet4.subsurface(self.sheet4.get_clip())
+    
+    def getImage5(self, x, y, width, height):
+        #x *= TILEWIDTH
+        #y *= TILEHEIGHT
+        self.sheet5.set_clip(pygame.Rect(x, y, width, height))
+        return self.sheet5.subsurface(self.sheet5.get_clip())
+    
+    def getImage6(self, x, y, width, height):
+        #x *= TILEWIDTH
+        #y *= TILEHEIGHT
+        self.sheet6.set_clip(pygame.Rect(x, y, width, height))
+        return self.sheet6.subsurface(self.sheet6.get_clip())
 
 class PlayerSprite(Spritesheet):
     def __init__(self, character):
@@ -115,6 +133,9 @@ class AlienSprites(Spritesheet):
         self.animations[MOVE] = Animator(((0, 64), (64, 64)), speed=1)
         self.animations[EXPLODE] = Animator(((0, 0), (64, 0), (128, 0), (192, 0), (256, 0), (320, 0), (384, 0), (448, 0), (512, 0), (576, 0)), loop = False)
         self.animations[HIT] = Animator(((128, 64), (128, 64)))
+        # self.animations[RMOVE] = Animator(((0, 0), (0, 0)), speed=1)
+        # self.animations[REXPLODE] = Animator(((0, 0), (64, 0), (128, 0), (192, 0), (256, 0), (320, 0), (384, 0), (448, 0), (512, 0), (576, 0)), loop = False)
+        # self.animations[RHIT] = Animator(((128, 64), (128, 64)))
 
     def update(self, dt):
         if self.character.alive:
@@ -128,21 +149,35 @@ class AlienSprites(Spritesheet):
                 if self.character.hit == True:
                     self.character.image = self.getImage2(*self.animations[HIT].update(dt))
                     self.character.hit = False
+            if self.character.type == 'red':
+                self.character.image = self.getImage5(*self.animations[MOVE].update(dt))
+                if self.character.hit == True:
+                    self.character.image = self.getImage5(*self.animations[HIT].update(dt))
+                    self.character.hit = False
+            if self.character.type == 'green':
+                self.character.image = self.getImage6(*self.animations[MOVE].update(dt))
+                if self.character.hit == True:
+                    self.character.image = self.getImage6(*self.animations[HIT].update(dt))
+                    self.character.hit = False
         else:
             if self.character.type == 'blue':
                 self.character.image = self.getImage(*self.animations[EXPLODE].update(dt))
             if self.character.type == 'pink':
                 self.character.image = self.getImage2(*self.animations[EXPLODE].update(dt))
+            if self.character.type == 'red':
+                self.character.image = self.getImage5(*self.animations[EXPLODE].update(dt))
+            if self.character.type == 'green':
+                self.character.image = self.getImage6(*self.animations[EXPLODE].update(dt))
 
     def getStartImage(self):
         if self.character.type == 'blue':
             return self.getImage(0, 0)
         if self.character.type == 'pink':
             return self.getImage2(0, 0)
-        # if self.character.name == 6:
-        #     return self.getImage(7.4, 12)
-        # if self.character.name == 7:
-        #     return self.getImage(7.4, 14)
+        if self.character.type == 'red':
+            return self.getImage5(0, 0)
+        if self.character.type == 'green':
+            return self.getImage6(0, 0)
 
     def reset(self):
         for key in list(self.animations.keys()):
@@ -154,6 +189,45 @@ class AlienSprites(Spritesheet):
     
     def getImage2(self, x, y):
         return Spritesheet.getImage4(self, x, y, 64, 64)
+    
+    def getImage5(self, x, y):
+        return Spritesheet.getImage5(self, x, y, 64, 64)
+    
+    def getImage6(self, x, y):
+        return Spritesheet.getImage6(self, x, y, 64, 64)
+
+# class BossSprite(Spritesheet):
+#     def __init__(self, character):
+#         Spritesheet.__init__(self)
+#         self.character = character
+#         self.character.image = self.getStartImage()
+#         self.animations = {}
+#         self.defineAnimations()
+
+#     def defineAnimations(self):
+#         self.animations[MOVE] = Animator(((0, 64), (64, 64)), speed=1)
+#         self.animations[EXPLODE] = Animator(((0, 0), (64, 0), (128, 0), (192, 0), (256, 0), (320, 0), (384, 0), (448, 0), (512, 0), (576, 0)), loop = False)
+#         self.animations[HIT] = Animator(((128, 64), (128, 64)))
+
+#     def update(self, dt):
+#         if self.character.alive == True:
+#             self.character.image = self.getImage(*self.animations[MOVE].update(dt))
+#             if self.character.hit == True:
+#                 self.character.image = self.getImage(*self.animations[HIT].update(dt))
+#                 self.character.hit = False
+#         else:
+#             self.character.image = self.getImage(*self.animations[EXPLODE].update(dt))
+
+#     def reset(self):
+#         for key in list(self.animations.keys()):
+#             self.animations[key].reset()
+#         self.character.image = self.getStartImage()
+
+#     def getStartImage(self):
+#         return self.getImage(0, 0)
+
+#     def getImage(self, x, y):
+#         return Spritesheet.getImage5(self, x, y, 64, 64)
     
 # class AlienLasers(Spritesheet):
 #     def __init__(self, character):

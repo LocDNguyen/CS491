@@ -1,3 +1,6 @@
+import os
+import pygame
+
 TILEWIDTH = 16
 TILEHEIGHT = 16
 # NROWS = 36
@@ -67,3 +70,30 @@ SHOOT = 3
 # CDOWN = -10
 # CLEFT = 11
 # CRIGHT = -11
+
+BLACK_PLANE_IMG = os.path.join('Sprites', 'jet.png')
+WHITE_PLANE_IMG = os.path.join('Sprites', 'red_alien1.png')
+ALIEN_IMG = os.path.join('Sprites', 'red_alien1.png')
+LOADING_IMG = os.path.join('images', 'loading.gif')
+
+SCREEN_WIDTH = 1000
+SCREEN_HEIGHT = 800
+CENTER = SCREEN_WIDTH/2
+
+ROWS = 1#3
+COLS = 1#7
+ALIEN_COOLDOWN = 1000
+
+SERVER_LISTEN_IP = "0.0.0.0"
+SERVER_IP = "192.168.254.12"
+SERVER_PORT = 5555
+
+ROTATE_AMOUNT = 2.5
+
+FPS = 60
+SCREEN_COLOR = (130, 130, 130)
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+
+WHITE_CONTROLS = [pygame.K_LEFT, pygame.K_RIGHT, pygame.K_UP, pygame.K_DOWN]
+BLACK_CONTROLS = [pygame.K_a, pygame.K_d, pygame.K_w, pygame.K_s]
