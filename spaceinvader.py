@@ -11,6 +11,7 @@ from testscreen import title_screen, highscore, game_over, white
 from sprites import PlayerSprite, AlienSprites
 from constants import *
 from pause import *
+from network import *
 
 pygame.init()
 
@@ -24,8 +25,8 @@ clock = pygame.time.Clock()
 
 pause = Pause(True)
 
-rows = 3
-cols = 7
+rows = 1#3
+cols = 1#7
 alien_cooldown = 1000
 
 screen = pygame.display.set_mode((screen_width, screen_height))
@@ -126,7 +127,6 @@ class Spaceship(pygame.sprite.Sprite):
         self.sprites = PlayerSprite(self)
         self.direction = None
 
-
 class Laser(pygame.sprite.Sprite):
     def __init__(self, x, y):
         pygame.sprite.Sprite.__init__(self)
@@ -173,7 +173,6 @@ class Laser(pygame.sprite.Sprite):
         self.check_collisions()
         self.check_boss_collisions()
         # self.check_boss_collisions()
-
 
 class Alien(pygame.sprite.Sprite):
     def __init__(self, x, y, health, type):
@@ -455,6 +454,7 @@ def play():
     move_on = 10
     stop_making = 0
     while run:
+
         dt = clock.tick(60) / 500.0
         time_now = pygame.time.get_ticks()
         screen.blit(bg2, (0, 0))
