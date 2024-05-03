@@ -721,10 +721,14 @@ def getting_name():
 
 def main():
     game_state = GameState.TITLE
+    once = True
 
     while True:
-        if game_state == GameState.TITLE:
+        if once:
+            sound = Sound('Sounds/menu.wav')
             sound.play_bg()
+            once = False
+        if game_state == GameState.TITLE:
             sound.stop_sound()
             game_state = title_screen(screen, CENTER, game_loop)
 
@@ -737,6 +741,7 @@ def main():
             game_state = highscore(screen, highscore_file, CENTER, game_loop)
 
         if game_state == GameState.DEAD:
+            once = True
             game_state = game_over(screen, SCREEN_HEIGHT, CENTER, game_loop, spaceship, spaceship_group, 
                                    laser_group, alien_group, alien_laser_group, rock_group, rock_group_two,
                                    all_enemy_lasers, alien_still_group, falling_lasers, big_boss, sound)
