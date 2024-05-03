@@ -149,6 +149,7 @@ class Laser(pygame.sprite.Sprite):
         collisions = pygame.sprite.groupcollide(alien_group, laser_group, False, True, pygame.sprite.collide_mask)
         if collisions and not spaceship.laser2:
             for alien in collisions:
+                sound.hit()
                 alien.hit = True
                 damage = round(random.uniform(0.1, 1), 2)
                 alien.health -= damage
@@ -161,7 +162,10 @@ class Laser(pygame.sprite.Sprite):
         collisions = pygame.sprite.groupcollide(big_boss, laser_group, False, True, pygame.sprite.collide_mask)
         if collisions and not spaceship.laser2:
             for boss in collisions:
-                boss.health -= 1
+                sound.hit()
+                boss.hit = True
+                damage = round(random.uniform(1, 3), 2)
+                boss.health -= damage
         elif collisions and spaceship.laser2:
             for boss in collisions:
                 boss.health -= 3
@@ -211,6 +215,7 @@ class Alien(pygame.sprite.Sprite):
                     pause.setPause(pauseTime = 5.5, func = GameState.NAME)
                     spaceship.alive = False
             else:
+                sound.alien_explosion()
                 if self.sprites.animations[2].finished:
                     self.kill()
         if self.type == 'pink':
@@ -226,10 +231,8 @@ class Alien(pygame.sprite.Sprite):
                 if self.health <= 0:
                     spaceship.score += 100
                     self.alive = False
-                if spaceship.health_remaining <= 0:
-                    pause.setPause(pauseTime = 5.5, func = GameState.NAME)
-                    spaceship.alive = False
             else:
+                sound.alien_explosion()
                 if self.sprites.animations[2].finished:
                     self.kill()
         if self.type == 'red':
@@ -244,6 +247,7 @@ class Alien(pygame.sprite.Sprite):
                     spaceship.score += 100000
                     self.alive = False
             else:
+                sound.alien_explosion()
                 if self.sprites.animations[2].finished:
                     self.kill()
         if self.type == 'green':
@@ -254,6 +258,7 @@ class Alien(pygame.sprite.Sprite):
                     spaceship.score += 1
                     self.alive = False
             else:
+                sound.alien_explosion()
                 if self.sprites.animations[2].finished:
                     self.kill()
             
@@ -329,6 +334,7 @@ class Alien_Laser(pygame.sprite.Sprite):
             self.kill()
         if pygame.sprite.spritecollide(self, spaceship_group, False, pygame.sprite.collide_mask):
             self.kill()
+            sound.hit()
             spaceship.direction = HIT
             spaceship.health_remaining -= 1
         if pygame.sprite.spritecollide(self, rock_group, False, pygame.sprite.collide_mask):
@@ -349,6 +355,7 @@ class Big_Alien_Laser(pygame.sprite.Sprite):
         if self.rect.top > SCREEN_HEIGHT:
             self.kill()
         if pygame.sprite.spritecollide(self, spaceship_group, False, pygame.sprite.collide_mask):
+            sound.hit()
             self.kill()
             spaceship.health_remaining -= 10
 
@@ -465,7 +472,7 @@ def play():
     pressedEscToBegin = True
     pausedText = False
     alternate = True
-    stop = 4
+    stop = 0
     move = 0
     move_on = 10
     stop_making = 0

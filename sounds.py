@@ -17,13 +17,16 @@ class Sound:
         hover_over = pg.mixer.Sound('Sounds/hover_over.wav')
         pause_sound = pg.mixer.Sound('Sounds/pause2.wav')
         game_over_sound = pg.mixer.Sound('Sounds/game_over.wav')
-        key_click_sound = pg.mixer.Sound('Sounds/key_click.wav')
-        #key_click_sound.set_volume(0.2)
         game_over_sound.set_volume(0.1)
+        key_click_sound = pg.mixer.Sound('Sounds/key_click.wav')
+        explode_sound = pg.mixer.Sound('Sounds/explode.wav')
+        explode_sound.set_volume(0.1)
+        hit_sound = pg.mixer.Sound('Sounds/hit.wav')
+        hit_sound.set_volume(0.1)
         self.once = True
         self.sounds = {'start': start_sound, 'hover': hover_over, 'pause': pause_sound, 
                        'laser': laser_sound, 'explosion': explosion_sound, 'over': game_over_sound,
-                       'key': key_click_sound}
+                       'key': key_click_sound, 'explode': explode_sound, 'hit': hit_sound}
 
     def play_bg(self):
         pg.mixer.music.play(-1, 0.0)
@@ -43,6 +46,8 @@ class Sound:
     def jet_explosion(self): pg.mixer.Sound.play(self.sounds['explosion'])
     def game_over(self): pg.mixer.Sound.play(self.sounds['over'])
     def key_click(self): pg.mixer.Sound.play(self.sounds['key'])
+    def alien_explosion(self): pg.mixer.Sound.play(self.sounds['explode'])
+    def hit(self): pg.mixer.Sound.play(self.sounds['hit'])
 
     # def gameover(self):
     #     if self.once:
