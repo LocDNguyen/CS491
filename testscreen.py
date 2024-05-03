@@ -2,6 +2,7 @@ from pygame.sprite import RenderUpdates
 from buttons import UIPlain, UIElement
 from highscore import get_highscore
 from gamestate import GameState
+from sounds import *
 
 white = (255, 255, 255)
 green = (255, 0, 255)
@@ -30,7 +31,8 @@ def highscore(screen, file_name, center, game_loop):
     buttons = RenderUpdates(menu_btn, title, first, second, third)
     return game_loop(screen, buttons)
 
-def game_over(screen, screen_height, center, game_loop, spaceship, spaceship_group, laser_group, alien_group, alien_laser_group, rock_group, rock_group_two, all_enemy_lasers, alien_still_group, falling_lasers, big_boss):
+def game_over(screen, screen_height, center, game_loop, spaceship, spaceship_group, laser_group, alien_group, alien_laser_group, rock_group, rock_group_two, all_enemy_lasers, alien_still_group, falling_lasers, big_boss, sound):
+    sound.game_over()
     game_over = UIPlain(center_position=(center, 200), font_size=70, text_rgb=white, text="GAME OVER")
     final_score = UIPlain(center_position=(center, 300), font_size=30, text_rgb=white, text="Final Score : " + str(spaceship.score))
     # retry_btn = UIElement(center_position=(center, 400), font_size=30, text_rgb=white, text="Restart", action=GameState.NEWGAME)

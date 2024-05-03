@@ -11,12 +11,14 @@ from testscreen import title_screen, highscore, game_over, white
 from sprites import PlayerSprite, AlienSprites
 from constants import *
 from pause import *
+from sounds import *
 
 pygame.init()
 
 highscore_file = 'highscores.txt'
 
 clock = pygame.time.Clock()
+sound = Sound('Sounds/menu.wav')
 
 global pause
 pause = Pause(True)
@@ -66,6 +68,7 @@ class Spaceship(pygame.sprite.Sprite):
 
             time_now = pygame.time.get_ticks()
             if key[pygame.K_SPACE] and time_now - self.last_shot > self.cooldown:
+                sound.shoot_laser()
                 laser = Laser(self.rect.centerx, self.rect.top)
                 laser_group.add(laser)
                 self.last_shot = time_now
@@ -100,7 +103,7 @@ class Spaceship(pygame.sprite.Sprite):
             for alien in collisions:
                 alien.health -= alien.health
             self.health_remaining -= self.health_remaining
-        collisions2 = pygame.sprite.spritecollide(self, big_boss, False, pygame.sprite.collide_mask)
+        collisions2 = pygame.sprite.spritecollide(self, big_boss, True, pygame.sprite.collide_mask)
         if collisions2:
             for alien in collisions2:
                 alien.health -= alien.health
@@ -110,6 +113,8 @@ class Spaceship(pygame.sprite.Sprite):
         if pygame.sprite.spritecollide(self, rock_group_two, False, pygame.sprite.collide_mask):
             self.health_remaining -= self.health_remaining
         if self.health_remaining <= 0:
+            sound.jet_explosion()
+            sound.stop_bg()
             pause.setPause(pauseTime = 5.5, func = GameState.NAME)
             spaceship.alive = False
         
@@ -130,7 +135,6 @@ class Spaceship(pygame.sprite.Sprite):
         self.alive = True
         self.sprites = PlayerSprite(self)
         self.direction = None
-
 
 class Laser(pygame.sprite.Sprite):
     def __init__(self, x, y):
@@ -177,7 +181,6 @@ class Laser(pygame.sprite.Sprite):
             self.kill()
         self.check_collisions()
         self.check_boss_collisions()
-
 
 class Alien(pygame.sprite.Sprite):
     def __init__(self, x, y, health, type):
@@ -444,6 +447,8 @@ def game_loop(screen, buttons):
         for button in buttons:
             ui_action = button.update(pygame.mouse.get_pos(), mouse_up)
             if ui_action is not None:
+                if ui_action == GameState.NEWGAME:
+                    sound.start_button()
                 return ui_action
 
         buttons.draw(screen)
@@ -466,6 +471,7 @@ def play():
     stop_making = 0
     start_making_pink = 0
     numOfPinkSpawned = 0
+    once = True
     list_for_x_y_of_pink_alien = [(SCREEN_WIDTH + 50, 50), (SCREEN_WIDTH + 50, 100), (SCREEN_WIDTH + 50, 200), (SCREEN_WIDTH + 50, 300), 
                                   (-50, 50), (-50, 100), (-50, 200), (-50, 300),
                                   (50, -50), (100, -50), (200, -50), (300, -50),
@@ -481,9 +487,15 @@ def play():
                     pause.setPause(playerPaused=True)
                     pressedEscToBegin = False
                     if not pause.paused:
+                        if once:
+                            sound.begin()
+                            once = False
+                        sound.undeafen()
                         showSprites()
                         pausedText = False
                     else:
+                        sound.pause_button()
+                        sound.deafen()
                         pausedText = True
 
             if event.type == pygame.QUIT:
@@ -683,6 +695,8 @@ def getting_name():
                     user_text += event.unicode
                 if len(user_text) >= 4:
                     user_text = user_text[:-1]
+                if len(user_text) > 0 and len(user_text) < 3:
+                    sound.key_click()
                 if event.key == pygame.K_RETURN:
                     set_highscore(highscore_file, user_text, spaceship.score)
                     return GameState.DEAD
@@ -703,9 +717,13 @@ def main():
 
     while True:
         if game_state == GameState.TITLE:
+            sound.play_bg()
+            sound.stop_sound()
             game_state = title_screen(screen, CENTER, game_loop)
 
         if game_state == GameState.NEWGAME:
+            sound.fade_bg()
+            time.sleep(0.7)
             game_state = play()
 
         if game_state == GameState.HIGHSCORE:
@@ -714,7 +732,7 @@ def main():
         if game_state == GameState.DEAD:
             game_state = game_over(screen, SCREEN_HEIGHT, CENTER, game_loop, spaceship, spaceship_group, 
                                    laser_group, alien_group, alien_laser_group, rock_group, rock_group_two,
-                                   all_enemy_lasers, alien_still_group, falling_lasers, big_boss)
+                                   all_enemy_lasers, alien_still_group, falling_lasers, big_boss, sound)
             
         if game_state == GameState.NAME:
             game_state = getting_name()

@@ -4,7 +4,7 @@
 
 from pygame.sprite import Sprite
 import pygame.freetype
-
+from sounds import *
 
 class UIPlain(Sprite):
     def __init__(self, center_position, text, font_size, text_rgb):
@@ -33,7 +33,9 @@ class UIPlain(Sprite):
 
 class UIElement(Sprite):
     def __init__(self, center_position, text, font_size, text_rgb, action=None):
+        self.sound = Sound(None)
         self.mouse_over = False
+        self.play_once = True
 
         default_image = create_surface_with_text(text=text, font_size=font_size, text_rgb=text_rgb)
         highlighted_image = create_surface_with_text(text=text, font_size=font_size * 1.2, text_rgb=text_rgb)
@@ -55,10 +57,14 @@ class UIElement(Sprite):
 
     def update(self, mouse_pos, mouse_up):
         if self.rect.collidepoint(mouse_pos):
+            if self.play_once:
+                self.sound.hover_button()
+                self.play_once = False
             self.mouse_over = True
             if mouse_up:
                 return self.action
         else:
+            self.play_once = True
             self.mouse_over = False
 
     def draw(self, surface):
