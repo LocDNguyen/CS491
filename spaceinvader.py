@@ -534,7 +534,7 @@ def play():
                     alien_group.add(alien)
                     end_timer_for_spawning_pink_aliens = time_now
                     numOfPinkSpawned += 1
-                if numOfPinkSpawned == 20:
+                if numOfPinkSpawned == 15:
                     start_making_pink += 1
                     stop += 1
 
