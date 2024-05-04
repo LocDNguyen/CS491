@@ -154,6 +154,14 @@ class Laser(pygame.sprite.Sprite):
                 damage = round(random.uniform(0.1, 1), 2)
                 alien.health -= damage
                 draw_text(alien.rect.x + 70, alien.rect.y + 60, str(damage), 25, white, screen)
+        collisions2 = pygame.sprite.groupcollide(green_group, laser_group, False, True, pygame.sprite.collide_mask)
+        if collisions2 and not spaceship.laser2:
+            for alien in collisions2:
+                sound.hit()
+                alien.hit = True
+                damage = round(random.uniform(0.1, 1), 2)
+                alien.health -= damage
+                draw_text(alien.rect.x + 70, alien.rect.y + 60, str(damage), 25, white, screen)
         elif collisions and spaceship.laser2:
             for alien in collisions:
                 alien.health -= 3
@@ -180,7 +188,7 @@ class Laser(pygame.sprite.Sprite):
         return self.image
 
     def update(self):
-        self.rect.y -= 5
+        self.rect.y -= 7
         if self.rect.bottom < 0:
             self.kill()
         self.check_collisions()
@@ -197,6 +205,7 @@ class Alien(pygame.sprite.Sprite):
         self.move_direction = 1
         self.boss_move_direction = 0
         self.move_down = 2
+        self.green_move_down = 0
         self.health = health
         self.alive = True
         self.hit = False
@@ -249,8 +258,7 @@ class Alien(pygame.sprite.Sprite):
                     self.kill()
         if self.type == 'green':
             if self.alive:
-                self.rect.y += self.move_down
-                self.rect.x += self.boss_move_direction
+                self.rect.y += self.green_move_down
                 if self.health <= 0:
                     spaceship.score += 1
                     self.alive = False
@@ -310,7 +318,9 @@ class Alien_Laser(pygame.sprite.Sprite):
     def __init__(self, x, y, orientation, alien):
         pygame.sprite.Sprite.__init__(self)
         self.orientation = orientation
-        self.type = alien
+        self.alien = alien
+        if self.alien != None:
+            self.type = alien.type
         if self.orientation:
             self.image = pygame.image.load("Sprites/sprite_0.png").convert_alpha()
             self.image = pygame.transform.scale(self.image, (32, 32))
@@ -323,21 +333,31 @@ class Alien_Laser(pygame.sprite.Sprite):
         self.rect.center = [x, y]
 
     def update(self, dt):
-        if self.orientation:
-            self.rect.y += 4
+        if self.alien == None or self.type != 'green':
+            if self.orientation:
+                self.rect.y += 4
+            else:
+                self.rect.x -= 4
+            if self.rect.top > SCREEN_HEIGHT:
+                self.kill()
+            if pygame.sprite.spritecollide(self, spaceship_group, False, pygame.sprite.collide_mask):
+                self.kill()
+                sound.hit()
+                spaceship.direction = HIT
+                spaceship.health_remaining -= 1
+            if pygame.sprite.spritecollide(self, rock_group, False, pygame.sprite.collide_mask):
+                self.kill()
+            if pygame.sprite.spritecollide(self, rock_group_two, False, pygame.sprite.collide_mask):
+                self.kill()
         else:
-            self.rect.x -= 4
-        if self.rect.top > SCREEN_HEIGHT:
-            self.kill()
-        if pygame.sprite.spritecollide(self, spaceship_group, False, pygame.sprite.collide_mask):
-            self.kill()
-            sound.hit()
-            spaceship.direction = HIT
-            spaceship.health_remaining -= 1
-        if pygame.sprite.spritecollide(self, rock_group, False, pygame.sprite.collide_mask):
-            self.kill()
-        if pygame.sprite.spritecollide(self, rock_group_two, False, pygame.sprite.collide_mask):
-            self.kill()
+            if self.rect.x < spaceship.rect.x:
+                self.rect.x += 2
+            if self.rect.x > spaceship.rect.x:
+                self.rect.x -= 2
+            if self.rect.y < spaceship.rect.y:
+                self.rect.y += 2
+            if self.rect.y > spaceship.rect.y:
+                self.rect.y -= 2
 
 class Big_Alien_Laser(pygame.sprite.Sprite):
     def __init__(self, x, y):
@@ -436,6 +456,7 @@ def showSprites():
     all_enemy_lasers.draw(screen)
     falling_lasers.draw(screen)
     big_boss.draw(screen)
+    green_group.draw(screen)
 
 
 def game_loop(screen, buttons):
@@ -466,15 +487,17 @@ def play():
     end_timer_for_first_laser_mech = pygame.time.get_ticks()
     ender_timer = pygame.time.get_ticks()
     end_timer_for_spawning_pink_aliens = pygame.time.get_ticks()
+    big_boss_movement_timer = pygame.time.get_ticks()
     create_aliens()
     pressedEscToBegin = True
     pausedText = False
     alternate = True
-    stop = 4
+    stop = 1
     move = 0
     move_on = 10
     stop_making = 0
     start_making_pink = 0
+    start_making_green = 0
     numOfPinkSpawned = 0
     once = True
     list_for_x_y_of_pink_alien = [(SCREEN_WIDTH + 50, 50), (SCREEN_WIDTH + 50, 100), (SCREEN_WIDTH + 50, 200), (SCREEN_WIDTH + 50, 300), 
@@ -513,7 +536,7 @@ def play():
 
         if not pause.paused:
             #Eliminate all blue aliens
-            if start_making_pink == 0:
+            if start_making_pink == 0 and start_making_green == 0:
                 if time_now - last_alien_shot > alien_cooldown and len(alien_laser_group) < 5 and len(alien_group) > 0:
                     sound.shoot_laser()
                     shooting_alien = random.choice(alien_group.sprites())
@@ -540,14 +563,29 @@ def play():
                     stop += 1
 
             #Eliminate all green aliens
-            if len(alien_group) == 0 and stop == 1:
-                alien = Alien(SCREEN_WIDTH / 2 - 50, -100, 1, "green")
+            if len(alien_group) == 0 and stop == 1 and start_making_green == 0:
+                start_making_green = 1
+            if start_making_green == 1:
+                alien = Alien(250, -100, 1, "green")
+                alien1 = Alien(750, -100, 1, "green")
+                alien2 = Alien(250, -250, 1, "green")
+                alien3 = Alien(750, -250, 1, "green")
                 green_group.add(alien)
-                if len(green_group) == 1:
-                    for alien in green_group:
-                        if boss.rect.bottom == 100 and move == 0:
-                            boss.move_down = 0
-                            boss.boss_move_direction = 1
+                green_group.add(alien1)
+                alien_group.add(alien2)
+                alien_group.add(alien3)
+                start_making_green += 1
+            if start_making_green == 2:
+                for alien in alien_group:
+                    alien.green_move_down = 3
+                    if alien.rect.bottom == 200:
+                        alien.green_move_down = 0
+                for alien in green_group:
+                    alien.green_move_down = 3
+                    if alien.rect.bottom == 400:
+                        alien.green_move_down = 0
+                        start_making_green += 1
+            if len(alien_group) == 0 and start_making_green == 3 and len(green_group) == 0:
                 stop += 1
 
             #First hide behind rock mech
@@ -629,6 +667,15 @@ def play():
                             boss.boss_move_direction = 1
                             move += 1
                         if move == 1:
+                            if time_now - big_boss_movement_timer > 5000:
+                                if boss.boss_move_direction > 0:
+                                    boss.boss_move_direction = random.randint(1, 5)
+                                else:
+                                    boss_speed_change = random.randint(1, 5)
+                                    boss_speed_change *= -1
+                                    boss.boss_move_direction = boss_speed_change
+                                big_boss_movement_timer = time_now
+                                print(boss.boss_move_direction)
                             if boss.check_edges():
                                 boss.boss_move_direction *= -1
                             if stop_making == 0:
@@ -639,7 +686,6 @@ def play():
                                         alien_still_group.add(enemy)
                                     stop_making = 1
                             if time_now - last_big_shot > 1000:
-                                boss.boss_move_direction = random.randint(0, 10)
                                 for ele in range(len(alien_still_group)):
                                     if ele != len(alien_still_group) - 1:
                                         attacking_enemy = random.choice(alien_still_group.sprites())
@@ -673,6 +719,7 @@ def play():
             rock_group_two.update()
             falling_lasers.update(dt)
             big_boss.update(dt)
+            green_group.update(dt)
 
         if spaceship.alive:
             if not pause.paused:
