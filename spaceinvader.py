@@ -211,9 +211,6 @@ class Alien(pygame.sprite.Sprite):
                 if self.health <= 0:
                     spaceship.score += 100
                     self.alive = False
-                if spaceship.health_remaining <= 0:
-                    pause.setPause(pauseTime = 5.5, func = GameState.NAME)
-                    spaceship.alive = False
             else:
                 sound.alien_explosion()
                 if self.sprites.animations[2].finished:
@@ -410,6 +407,7 @@ all_enemy_lasers = pygame.sprite.Group()
 alien_still_group = pygame.sprite.Group()
 falling_lasers = pygame.sprite.Group()
 big_boss = pygame.sprite.Group()
+green_group = pygame.sprite.Group()
 
 spaceship = Spaceship(CENTER, SCREEN_HEIGHT - 100, 99)
 spaceship_group.add(spaceship)
@@ -472,7 +470,7 @@ def play():
     pressedEscToBegin = True
     pausedText = False
     alternate = True
-    stop = 0
+    stop = 4
     move = 0
     move_on = 10
     stop_making = 0
@@ -514,8 +512,10 @@ def play():
             draw_text(CENTER, 450, "Paused", 37, white, screen)
 
         if not pause.paused:
+            #Eliminate all blue aliens
             if start_making_pink == 0:
                 if time_now - last_alien_shot > alien_cooldown and len(alien_laser_group) < 5 and len(alien_group) > 0:
+                    sound.shoot_laser()
                     shooting_alien = random.choice(alien_group.sprites())
                     alien_laser = Alien_Laser(shooting_alien.rect.centerx, shooting_alien.rect.bottom, True, shooting_alien)
                     alien_laser_group.add(alien_laser)
@@ -525,6 +525,7 @@ def play():
             #Spawn them outside screen
             #Spawm them in intervals at random coordinates
             #Have a counter to count how many enemies have died in order to stop mech
+            #Eliminate all pink aliens
             if len(alien_group) == 0 and stop == 0:
                 start_making_pink = 1
             if start_making_pink == 1:
@@ -538,11 +539,22 @@ def play():
                     start_making_pink += 1
                     stop += 1
 
-            #First Mech
-            if len(alien_group) == 0 and len(rock_group) == 0 and stop == 1:
+            #Eliminate all green aliens
+            if len(alien_group) == 0 and stop == 1:
+                alien = Alien(SCREEN_WIDTH / 2 - 50, -100, 1, "green")
+                green_group.add(alien)
+                if len(green_group) == 1:
+                    for alien in green_group:
+                        if boss.rect.bottom == 100 and move == 0:
+                            boss.move_down = 0
+                            boss.boss_move_direction = 1
+                stop += 1
+
+            #First hide behind rock mech
+            if len(alien_group) == 0 and len(rock_group) == 0 and stop == 2:
                 rockCover = Rock_Hori(SCREEN_WIDTH + 40, 500)
                 rock_group.add(rockCover)
-            elif len(rock_group) == 1 and stop == 1:
+            elif len(rock_group) == 1 and stop == 2:
                 if time_now - end_timer_for_first_laser_mech > 800:
                     if alternate:
                         for row in range(1):
@@ -562,11 +574,11 @@ def play():
                 if rockCover.rect.left < 250:
                     stop += 1
 
-            #Second Mech
-            if stop == 2 and len(rock_group) == 0 and len(rock_group_two) == 0 and len(alien_group) == 0:
+            #Second hide behind rock mech
+            if stop == 3 and len(rock_group) == 0 and len(rock_group_two) == 0 and len(alien_group) == 0:
                 rockCover = Rock_Vert(700, SCREEN_HEIGHT + 40)
                 rock_group_two.add(rockCover)
-            elif stop == 2 and len(rock_group_two) == 1:
+            elif stop == 3 and len(rock_group_two) == 1:
                 if time_now - end_timer_for_first_laser_mech > 200:
                     for row in range(1):
                         for item in range(40):
@@ -577,8 +589,8 @@ def play():
                 if rockCover.rect.top < 250:
                     stop += 1
 
-            #Third Mech
-            if stop == 3 and len(rock_group_two) == 0:
+            #Dodge falling laser mech
+            if stop == 4 and len(rock_group_two) == 0:
                 if time_now - end_timer_for_first_laser_mech > 70:
                     if stop_making == 0:
                         for row in range(1):
@@ -602,13 +614,14 @@ def play():
                     stop += 1
 
             #Big Boss Mech
-            if stop == 4 and len(alien_group) == 0:
+            if stop == 5 and len(alien_group) == 0:
+                sound.boss_battle()
                 boss = Alien(SCREEN_WIDTH / 2 - 35, -100, 5, "red")
                 big_boss.add(boss)
                 stop += 1
                 spawn = True
 
-            if stop == 5:
+            if stop == 6:
                 if len(big_boss) == 1:
                     for boss in big_boss:
                         if boss.rect.bottom == 100 and move == 0:
@@ -626,6 +639,7 @@ def play():
                                         alien_still_group.add(enemy)
                                     stop_making = 1
                             if time_now - last_big_shot > 1000:
+                                boss.boss_move_direction = random.randint(0, 10)
                                 for ele in range(len(alien_still_group)):
                                     if ele != len(alien_still_group) - 1:
                                         attacking_enemy = random.choice(alien_still_group.sprites())
@@ -647,7 +661,8 @@ def play():
                     stop += 1
             
             #Endless
-            if stop == 6 and len(alien_laser_group) == 0:
+            if stop == 7 and len(alien_laser_group) == 0:
+
                 spaceship.cooldown = 100
 
             laser_group.update()
@@ -725,9 +740,10 @@ def main():
 
     while True:
         if once:
-            sound = Sound('Sounds/menu.wav')
-            sound.play_bg()
+            sound2 = Sound('Sounds/menu2.wav')
+            sound2.play_bg()
             once = False
+
         if game_state == GameState.TITLE:
             sound.stop_sound()
             game_state = title_screen(screen, CENTER, game_loop)
