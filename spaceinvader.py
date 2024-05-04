@@ -23,8 +23,8 @@ sound = Sound('Sounds/menu.wav')
 global pause
 pause = Pause(True)
 
-rows = 1#3
-cols = 1#7
+rows = 3
+cols = 9
 alien_cooldown = 1000
 
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -67,11 +67,19 @@ class Spaceship(pygame.sprite.Sprite):
             #     self.direction = RIGHTDOWN
 
             time_now = pygame.time.get_ticks()
-            if key[pygame.K_SPACE] and time_now - self.last_shot > self.cooldown:
-                sound.shoot_laser()
-                laser = Laser(self.rect.centerx, self.rect.top)
-                laser_group.add(laser)
-                self.last_shot = time_now
+            if not self.ending_part:
+                if key[pygame.K_SPACE] and time_now - self.last_shot > self.cooldown:
+                    sound.shoot_laser()
+                    laser = Laser(self.rect.centerx, self.rect.top)
+                    laser_group.add(laser)
+                    self.last_shot = time_now
+            else:
+                if key[pygame.K_SPACE] and time_now - self.last_shot > self.cooldown:
+                    sound.shoot_laser()
+                    laser = Laser(self.rect.centerx, self.rect.top)
+                    laser.damage = round(random.uniform(1, 2))
+                    laser_group.add(laser)
+                    self.last_shot = time_now
             
             self.mask = pygame.mask.from_surface(self.image)
 
@@ -135,6 +143,7 @@ class Spaceship(pygame.sprite.Sprite):
         self.alive = True
         self.sprites = PlayerSprite(self)
         self.direction = None
+        self.ending_part = False
 
 class Laser(pygame.sprite.Sprite):
     def __init__(self, x, y):
@@ -143,7 +152,7 @@ class Laser(pygame.sprite.Sprite):
         self.image = self.check_laser_image()
         self.rect = self.image.get_rect()
         self.rect.center = [x, y]
-        self.damage = 0
+        self.damage = round(random.uniform(0.5, 1), 2)
 
     def check_collisions(self):
         collisions = pygame.sprite.groupcollide(alien_group, laser_group, False, True, pygame.sprite.collide_mask)
@@ -151,17 +160,13 @@ class Laser(pygame.sprite.Sprite):
             for alien in collisions:
                 sound.hit()
                 alien.hit = True
-                damage = round(random.uniform(0.1, 1), 2)
-                alien.health -= damage
-                draw_text(alien.rect.x + 70, alien.rect.y + 60, str(damage), 25, white, screen)
+                alien.health -= self.damage
+                draw_text(alien.rect.x + 70, alien.rect.y + 60, str(self.damage), 25, white, screen)
         collisions2 = pygame.sprite.groupcollide(green_group, laser_group, False, True, pygame.sprite.collide_mask)
         if collisions2 and not spaceship.laser2:
             for alien in collisions2:
                 sound.hit()
                 alien.hit = True
-                damage = round(random.uniform(0.1, 1), 2)
-                alien.health -= damage
-                draw_text(alien.rect.x + 70, alien.rect.y + 60, str(damage), 25, white, screen)
         elif collisions and spaceship.laser2:
             for alien in collisions:
                 alien.health -= 3
@@ -209,16 +214,31 @@ class Alien(pygame.sprite.Sprite):
         self.health = health
         self.alive = True
         self.hit = False
+        self.blue_move_down = False
         self.type = type
         self.sprites = AlienSprites(self)
 
     def update(self, dt):
         self.sprites.update(dt)
-        if self.type == 'blue':
+        if self.type == 'blue' and not self.blue_move_down:
             if self.alive:
                 self.rect.x += self.move_direction
                 if self.health <= 0:
                     spaceship.score += 100
+                    self.alive = False
+            else:
+                sound.alien_explosion()
+                if self.sprites.animations[2].finished:
+                    self.kill()
+        if self.type == 'blue' and self.blue_move_down:
+            if self.alive:
+                self.rect.y += 0.6
+                if self.health <= 0:
+                    spaceship.score += 100
+                    self.alive = False
+                if self.rect.bottom > SCREEN_HEIGHT + 90:
+                    spaceship.health_remaining -= 10
+                    spaceship.score -= 10000000
                     self.alive = False
             else:
                 sound.alien_explosion()
@@ -245,7 +265,7 @@ class Alien(pygame.sprite.Sprite):
             if self.alive:
                 self.rect.y += self.move_down
                 self.rect.x += self.boss_move_direction
-                if self.rect.bottom > SCREEN_HEIGHT + 75:
+                if self.rect.bottom > SCREEN_HEIGHT + 90:
                     spaceship.health_remaining -= 10
                     spaceship.score -= 10000000
                     self.alive = False
@@ -358,6 +378,19 @@ class Alien_Laser(pygame.sprite.Sprite):
                 self.rect.y += 2
             if self.rect.y > spaceship.rect.y:
                 self.rect.y -= 2
+            if pygame.sprite.spritecollide(self, spaceship_group, False, pygame.sprite.collide_mask):
+                self.kill()
+                sound.hit()
+                spaceship.direction = HIT
+                spaceship.health_remaining -= 1
+            collisions = pygame.sprite.groupcollide(green_group, alien_laser_group, False, True, pygame.sprite.collide_mask)
+            if collisions and not spaceship.laser2:
+                for alien in collisions:
+                    sound.hit()
+                    alien.hit = True
+                    damage = round(random.uniform(0.1, 1), 2)
+                    alien.health -= damage
+                    draw_text(alien.rect.x + 70, alien.rect.y + 60, str(damage), 25, white, screen)
 
 class Big_Alien_Laser(pygame.sprite.Sprite):
     def __init__(self, x, y):
@@ -492,7 +525,7 @@ def play():
     pressedEscToBegin = True
     pausedText = False
     alternate = True
-    stop = 1
+    stop = 0
     move = 0
     move_on = 10
     stop_making = 0
@@ -536,7 +569,7 @@ def play():
 
         if not pause.paused:
             #Eliminate all blue aliens
-            if start_making_pink == 0 and start_making_green == 0:
+            if start_making_pink == 0 and start_making_green == 0 and stop == 0:
                 if time_now - last_alien_shot > alien_cooldown and len(alien_laser_group) < 5 and len(alien_group) > 0:
                     sound.shoot_laser()
                     shooting_alien = random.choice(alien_group.sprites())
@@ -568,24 +601,32 @@ def play():
             if start_making_green == 1:
                 alien = Alien(250, -100, 1, "green")
                 alien1 = Alien(750, -100, 1, "green")
-                alien2 = Alien(250, -250, 1, "green")
-                alien3 = Alien(750, -250, 1, "green")
+                alien2 = Alien(250, -300, 1, "green")
+                alien3 = Alien(750, -300, 1, "green")
                 green_group.add(alien)
                 green_group.add(alien1)
-                alien_group.add(alien2)
-                alien_group.add(alien3)
+                green_group.add(alien2)
+                green_group.add(alien3)
+                first_green = green_group.sprites()[0]
                 start_making_green += 1
             if start_making_green == 2:
-                for alien in alien_group:
-                    alien.green_move_down = 3
-                    if alien.rect.bottom == 200:
+                if first_green.rect.bottom != 400:
+                    for alien in green_group:
+                        alien.green_move_down = 3
+                else:
+                    for alien in green_group:
                         alien.green_move_down = 0
-                for alien in green_group:
-                    alien.green_move_down = 3
-                    if alien.rect.bottom == 400:
-                        alien.green_move_down = 0
-                        start_making_green += 1
-            if len(alien_group) == 0 and start_making_green == 3 and len(green_group) == 0:
+                    start_making_green += 1
+            if start_making_green == 3:
+                if len(alien_laser_group) != 1 and len(green_group) > 0:
+                    green_shooting_alien = random.choice(green_group.sprites())
+                    alien_laser = Alien_Laser(green_shooting_alien.rect.centerx, green_shooting_alien.rect.centery, True, green_shooting_alien)
+                    alien_laser_group.add(alien_laser)
+                if len(green_group) == 0:
+                    alien_laser_group.empty()
+                    start_making_green += 1
+            if len(alien_group) == 0 and len(green_group) == 0 and len(alien_laser_group) == 0 and start_making_green == 4:
+                start_making_green += 1
                 stop += 1
 
             #First hide behind rock mech
@@ -708,8 +749,20 @@ def play():
             
             #Endless
             if stop == 7 and len(alien_laser_group) == 0:
-
-                spaceship.cooldown = 100
+                sound.ending()
+                spaceship.cooldown = 150
+                spaceship.ending_part = True
+                number_of_rows = 1
+                stop += 1
+            if stop == 8:
+                if len(alien_group) == 0:
+                    for row in range(number_of_rows):
+                        for col in range(9):
+                            alien = Alien(100 + col * 100, -1*(row * 70), 2, 'blue')
+                            alien.blue_move_down = True
+                            alien.move_direction = 0.4
+                            alien_group.add(alien)
+                        number_of_rows += 1
 
             laser_group.update()
             alien_group.update(dt)
@@ -807,7 +860,7 @@ def main():
             once = True
             game_state = game_over(screen, SCREEN_HEIGHT, CENTER, game_loop, spaceship, spaceship_group, 
                                    laser_group, alien_group, alien_laser_group, rock_group, rock_group_two,
-                                   all_enemy_lasers, alien_still_group, falling_lasers, big_boss, sound)
+                                   all_enemy_lasers, alien_still_group, falling_lasers, big_boss, green_group, sound)
             
         if game_state == GameState.NAME:
             game_state = getting_name()

@@ -14,7 +14,7 @@ class Sound:
         start_sound.set_volume(0.2)
         explosion_sound = pg.mixer.Sound('Sounds/explosion.wav')
         explosion_sound.set_volume(0.1)
-        hover_over = pg.mixer.Sound('Sounds/hover_over.wav')
+        hover_over = pg.mixer.Sound('Sounds/hover_over2.wav')
         pause_sound = pg.mixer.Sound('Sounds/pause2.wav')
         pause_sound.set_volume(0.2)
         game_over_sound = pg.mixer.Sound('Sounds/game_over.wav')
@@ -69,6 +69,11 @@ class Sound:
         pg.mixer.music.set_volume(0.1)
         self.play_bg()
 
+    def ending(self):
+        self.stop_bg()
+        pg.mixer.music.load('Sounds/end.wav')
+        pg.mixer.music.set_volume(0.1)
+        self.play_bg()
     # def speedup(self):
     #     self.stop_bg()
     #     pg.mixer.music.load('sounds/startrek_speed.wav')

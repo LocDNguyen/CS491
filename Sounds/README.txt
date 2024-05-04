@@ -1,7 +1,8 @@
 pause2 sound from: https://www.youtube.com/watch?v=YNSbL-Cek1c
-menu, menu2, begin, begin2, start, game_over, boss from: https://www.youtube.com/watch?v=O2RyqX-zfDs
+menu, menu2, begin, begin2, start, game_over, boss, end from: https://www.youtube.com/watch?v=O2RyqX-zfDs
 hover_over from: https://www.youtube.com/watch?v=_vjTeR9iw8o
 shoot from: https://www.youtube.com/watch?v=niKwTXI5TLo
 explosion from: https://www.youtube.com/watch?v=6xoh1VrM8Hc
 key_click, key_click2 from: https://www.youtube.com/watch?v=OJhWtBBJw10
 explode, hit from: https://www.youtube.com/watch?v=EA4h8l2zZ1g
+hover_over2 from: https://www.youtube.com/watch?v=2--_FCB_YQ0
