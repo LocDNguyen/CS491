@@ -259,7 +259,7 @@ class Client:
             if game_state == GameState.DEAD:
                 game_state = game_over(screen, SCREEN_HEIGHT, CENTER, game_loop, spaceship, spaceship_group, 
                                    laser_group, alien_group, alien_laser_group, rock_group, rock_group_two,
-                                   all_enemy_lasers, alien_still_group, falling_lasers, big_boss)
+                                   all_enemy_lasers, alien_still_group, falling_lasers, big_boss, green_group, sound)
             if game_state == GameState.NAME:
                 game_state = getting_name()
 

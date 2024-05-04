@@ -29,10 +29,12 @@ alien_cooldown = 1000
 
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption('Space Invaders Frontier')
-bg = pygame.Surface(screen.get_size())
-bg.fill((0, 0, 0))
+bg = pygame.image.load("Sprites/bg.png").convert_alpha()
+bg = pygame.transform.scale(bg, (SCREEN_WIDTH, SCREEN_HEIGHT))
 bg2 = pygame.image.load("Sprites/background8.png").convert_alpha()
 bg2 = pygame.transform.scale(bg2, (SCREEN_WIDTH, SCREEN_HEIGHT))
+bg3 = pygame.image.load("Sprites/deadscreen.png").convert_alpha()
+bg3 = pygame.transform.scale(bg3, (SCREEN_WIDTH, SCREEN_HEIGHT))
 
 class Spaceship(pygame.sprite.Sprite):
     def __init__(self, x, y, health):
@@ -86,8 +88,9 @@ class Spaceship(pygame.sprite.Sprite):
             self.check_collisions()
 
         for live in range(self.health_remaining - 1):
-           x = 5 + (live * (self.live_image.get_size()[0]))
-           screen.blit(self.live_image, (x, 8))
+           how_much = SCREEN_WIDTH - self.live_image.get_size()[0]
+           x = how_much - (live * self.live_image.get_size()[0]) # (-1* (live * (self.live_image.get_size()[0])))
+           screen.blit(self.live_image, (x, SCREEN_HEIGHT - self.live_image.get_size()[1]))
 
         #pygame.draw.rect(self.image, RED, [0, 0, self.rect.x, self.rect.y], 1)
 
@@ -462,7 +465,7 @@ falling_lasers = pygame.sprite.Group()
 big_boss = pygame.sprite.Group()
 green_group = pygame.sprite.Group()
 
-spaceship = Spaceship(CENTER, SCREEN_HEIGHT - 100, 99)
+spaceship = Spaceship(CENTER, SCREEN_HEIGHT - 100, 3)
 spaceship_group.add(spaceship)
 
 
@@ -478,6 +481,11 @@ def edge_check():
             if alien.check_edges():
                 alien.change_direction()
                 break
+
+def show_score():
+    font = pygame.font.SysFont('freesansbold.ttf', 37)
+    score = font.render("Score : " + str(spaceship.score), True, white)
+    screen.blit(score, (1, 775))
 
 def showSprites():
     spaceship_group.draw(screen)
@@ -620,7 +628,7 @@ def play():
             if start_making_green == 3:
                 if len(alien_laser_group) != 1 and len(green_group) > 0:
                     green_shooting_alien = random.choice(green_group.sprites())
-                    alien_laser = Alien_Laser(green_shooting_alien.rect.centerx, green_shooting_alien.rect.centery, True, green_shooting_alien)
+                    alien_laser = Alien_Laser(green_shooting_alien.rect.centerx, green_shooting_alien.rect.bottom, True, green_shooting_alien)
                     alien_laser_group.add(alien_laser)
                 if len(green_group) == 0:
                     alien_laser_group.empty()
@@ -789,6 +797,7 @@ def play():
             afterPauseMethod()
 
         edge_check()
+        show_score()
 
         pygame.display.update()
     return GameState.QUIT
@@ -797,14 +806,14 @@ def getting_name():
     user_text = ''
     global highscore_file
     font = pygame.font.SysFont('freesansbold.ttf', 37)
-    input_rect = pygame.Rect(465, 305, 58, 35) #y normally 705
+    input_rect = pygame.Rect(465, 720, 58, 35) #y normally 705
     global pause 
     pause = Pause(True)
 
     running = True
     while running:
 
-        screen.blit(bg, (0, 0))
+        screen.blit(bg3, (0, 0))
 
         # Getting user input for name
         for event in pygame.event.get():   # for loop to check for a event trigger from pygames
@@ -839,6 +848,7 @@ def main():
     once = True
 
     while True:
+        screen.blit(bg, (0, 0))
         if once:
             sound2 = Sound('Sounds/menu2.wav')
             sound2.play_bg()

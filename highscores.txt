@@ -1,1 +1,1 @@
-high:aaa:100,mid:aaa:0,low:Empty:0,lowest:Empty:0
+high:asd:0,mid:Empty:0,low:Empty:0,lowest:Empty:0
