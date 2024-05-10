@@ -17,6 +17,8 @@ from testscreen import *
 import sys
 from pygame.locals import *
 from spaceinvader import *
+from buttons import draw_text
+from sounds import *
 
 win = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.font.init()
@@ -24,7 +26,6 @@ pygame.font.init()
 class Client:
     def __init__(self):
         self.__socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        # self.__status_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.id = 0
         self.game = None
         self.server_ip = SERVER_IP
@@ -94,10 +95,9 @@ class Client:
 
             status = self.connect()  # Connecting to the server
             if status:  # Exiting if there was an error
-                # messagebox.showerror("Error", status)
                 print("Error status: ", status)
-                return
-
+                return False
+            
             if self.id == 0:  # If the current player is the first player -> Waiting for another player.
                 # Creating a 'waiting for player' window
                 result = []
@@ -107,17 +107,28 @@ class Client:
 
                 while True:
                     win.fill((0, 0, 0))
-                    font = pygame.font.SysFont("comicsans", 80)
-                    text = font.render("Waiting for Player...", 1, (255,0,0), True)
-                    win.blit(text, (SCREEN_WIDTH/2 - text.get_width()/2, SCREEN_HEIGHT/2 - text.get_height()/2))
+                    check4 = 'skip local'
+                    # font = pygame.font.SysFont("comicsans", 80)
+                    # text = font.render("Waiting for Player...", 1, (255,0,0), True)
+                    draw_text(CENTER, 350, "Waiting for Player...", 50, RED, win)
+                    draw_text(CENTER, 500, "Press Escape to Return to the Main Menu", 25, WHITE, win)
+                    #win.blit(text, (SCREEN_WIDTH/2 - text.get_width()/2, SCREEN_HEIGHT/2 - text.get_height()/2))
                     for event in pygame.event.get():
                         if event.type == pygame.QUIT:
                             pygame.quit()
                             self.disconnect()
-                    pygame.display.update()                
+                        if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                            self.__socket.close()
+                            return check4
+                    pygame.display.update()
                     if result:  # Checking if the server sent a start message
                         break
-        connect_and_start()
+                
+        check = connect_and_start()
+        if not check:
+            return GameState.TITLE
+        if check == 'skip local':
+            return None
 
     def disconnect(self):
         """Disconnecting from the server, closing the socket and exiting the program"""
@@ -200,49 +211,83 @@ class Client:
     def start(self):
         """Starting and managing the game"""
         game_state = GameState.TITLE
+        once = True
 
         while True:
+            win.blit(bg, (0, 0))
+            if once:
+                sound2 = Sound('Sounds/menu2.wav')
+                sound2.play_bg()
+                self.__socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self.game = None
+                once = False
+
             if game_state == GameState.TITLE:
+                sound.stop_sound()
+                once = True
                 game_state = title_screen(screen, CENTER, game_loop)
 
             if game_state == GameState.NEWGAME:
+                sound.fade_bg()
+                time.sleep(0.7)
                 game_state = play()
 
             if game_state == GameState.MULTIPLAYER:
-                self.startup_screen()  # Showing the startup screen and connecting to the server
+                sound.fade_bg()
+                game_state = self.startup_screen()  # Showing the startup screen and connecting to the server
                 init_data = self.request_initial_data()  # Getting initial data
-                if not init_data:
-                    messagebox.showerror('Data error', 'Couldn\'t get game data')
-                    exit()
+                if not init_data and game_state != None:
+                    run = True
+                    clock = pygame.time.Clock()
+
+                    while run:
+                        clock.tick(60)
+                        win.fill((0, 0, 0))
+                        draw_text(CENTER, 250, "Local server.py file not running!", 50, WHITE, win)
+                        draw_text(CENTER, 350, "Press Escape to Return to the Main Menu", 25, WHITE, win)
+
+                        for event in pygame.event.get():
+                            if event.type == pygame.QUIT:
+                                pygame.quit()
+                                sys.exit()
+                            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                                run = False
+                        pygame.display.update()
                 # Setting up initial parameters
-                screen_width = init_data['width']
-                screen_height = init_data['height']
-                plane_pos = init_data['planes_pos']
-                alien_pos = init_data['aliens_pos']
-                self.game = game.Game(screen_width, screen_height, plane_pos, alien_pos)
-                self.game.initialise_window()  # Starting the game's window
-                run = True
-                while run:
-                    for event in pygame.event.get():
-                        if event.type == pygame.QUIT:
-                            run = False
-                        elif event.type == pygame.KEYDOWN:
-                            key = event.key
-                            self.handle_key_press(key)
-                        elif event.type == pygame.KEYUP:
-                            key = event.key
-                            self.handle_key_release(key)
-                    self.request_game_obj()  # Updating game data each iteration
-                    self.game.draw()
-                self.disconnect()
+                elif init_data:
+                    screen_width = init_data['width']
+                    screen_height = init_data['height']
+                    plane_pos = init_data['planes_pos']
+                    alien_pos = init_data['aliens_pos']
+                    self.game = game.Game(screen_width, screen_height, plane_pos, alien_pos)
+                    self.game.initialise_window()  # Starting the game's window
+                    run = True
+                    while run:
+                        for event in pygame.event.get():
+                            if event.type == pygame.QUIT:
+                                run = False
+                            elif event.type == pygame.KEYDOWN:
+                                key = event.key
+                                self.handle_key_press(key)
+                            elif event.type == pygame.KEYUP:
+                                key = event.key
+                                self.handle_key_release(key)
+                        self.request_game_obj()  # Updating game data each iteration
+                        self.game.draw()
+                    self.disconnect()
+                else:
+                    game_state = GameState.TITLE
                 
             if game_state == GameState.HIGHSCORE:
+                once = False
                 game_state = highscore(screen, highscore_file, CENTER, game_loop)
 
             if game_state == GameState.DEAD:
+                once = True
                 game_state = game_over(screen, SCREEN_HEIGHT, CENTER, game_loop, spaceship, spaceship_group, 
                                    laser_group, alien_group, alien_laser_group, rock_group, rock_group_two,
                                    all_enemy_lasers, alien_still_group, falling_lasers, big_boss, green_group, sound)
+                
             if game_state == GameState.NAME:
                 game_state = getting_name()
 
