@@ -72,23 +72,6 @@ class Client:
 
     def startup_screen(self):
         """Showing a startup screen prompting the player to enter the IP and PORT of the server"""
-        run = True
-        clock = pygame.time.Clock()
-
-        while run:
-            clock.tick(60)
-            win.fill((0, 0, 0))
-            font = pygame.font.SysFont("comicsans", 60)
-            text = font.render("Click to Play!", 1, (255,0,0))
-            win.blit(text, (100,200))
-            pygame.display.update()
-
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    run = False
 
         def wait_start_msg(result: list):
             """Function to wait for the start message from the server"""
