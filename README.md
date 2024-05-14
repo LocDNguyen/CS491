@@ -1,5 +1,5 @@
 # CS491 Senior Capstone Project
-
+Some parts of code have been borrowed from different sources and has been cited accordingly.
 # Instructions
 1. Have python version 3.11 >= installed
 2. Clone the git repository using one of the options (https, ssh, github cli)
