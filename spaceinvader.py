@@ -23,8 +23,8 @@ sound = Sound('Sounds/menu.wav')
 global pause
 pause = Pause(True)
 
-rows = 1#2
-cols = 1#9
+rows = 2
+cols = 9
 alien_cooldown = 1000
 
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -381,13 +381,13 @@ class Alien_Laser(pygame.sprite.Sprite):
                 self.kill()
         else:
             if self.rect.x < spaceship.rect.x:
-                self.rect.x += 2
+                self.rect.x += 4
             if self.rect.x > spaceship.rect.x:
-                self.rect.x -= 2
+                self.rect.x -= 4
             if self.rect.y < spaceship.rect.y:
-                self.rect.y += 2
+                self.rect.y += 4
             if self.rect.y > spaceship.rect.y:
-                self.rect.y -= 2
+                self.rect.y -= 4
             if pygame.sprite.spritecollide(self, spaceship_group, False, pygame.sprite.collide_mask):
                 self.kill()
                 sound.hit()
@@ -406,7 +406,7 @@ class Big_Alien_Laser(pygame.sprite.Sprite):
     def __init__(self, x, y):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.image.load("Sprites/red_alien_shot.png").convert_alpha()
-        self.image = pygame.transform.scale(self.image, (128, 128))
+        self.image = pygame.transform.scale(self.image, (32*12, 32*12))
         self.rect = self.image.get_rect()
         self.rect.center = [x, y]
 
@@ -540,7 +540,7 @@ def play():
     pressedEscToBegin = True
     pausedText = False
     alternate = True
-    stop = 1
+    stop = 0
     move = 0
     move_on = 10
     stop_making = 0
@@ -715,7 +715,7 @@ def play():
                     stop += 1
 
             #Big Boss Mech
-            if stop == 5 and len(alien_group) == 0:
+            if stop == 5 and len(alien_group) == 0 and len(falling_lasers) == 0:
                 sound.boss_battle()
                 boss = Alien(SCREEN_WIDTH / 2 - 35, -100, 5, "red")
                 big_boss.add(boss)
@@ -738,7 +738,6 @@ def play():
                                     boss_speed_change *= -1
                                     boss.boss_move_direction = boss_speed_change
                                 big_boss_movement_timer = time_now
-                                print(boss.boss_move_direction)
                             if boss.check_edges():
                                 boss.boss_move_direction *= -1
                             if stop_making == 0:
@@ -820,7 +819,7 @@ def getting_name():
     user_text = ''
     global highscore_file
     font = pygame.font.SysFont('freesansbold.ttf', 37)
-    input_rect = pygame.Rect(465, 720, 58, 35) #y normally 705
+    input_rect = pygame.Rect(465, 720, 58, 35)
     global pause 
     pause = Pause(True)
 
