@@ -23,8 +23,8 @@ sound = Sound('Sounds/menu.wav')
 global pause
 pause = Pause(True)
 
-rows = 3
-cols = 9
+rows = 1#2
+cols = 1#9
 alien_cooldown = 1000
 
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -117,6 +117,11 @@ class Spaceship(pygame.sprite.Sprite):
         collisions2 = pygame.sprite.spritecollide(self, big_boss, True, pygame.sprite.collide_mask)
         if collisions2:
             for alien in collisions2:
+                alien.health -= alien.health
+            self.health_remaining -= self.health_remaining
+        collisions3 = pygame.sprite.spritecollide(self, green_group, True, pygame.sprite.collide_mask)
+        if collisions3:
+            for alien in collisions3:
                 alien.health -= alien.health
             self.health_remaining -= self.health_remaining
         if pygame.sprite.spritecollide(self, rock_group, False, pygame.sprite.collide_mask):
@@ -342,16 +347,18 @@ class Alien_Laser(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         self.orientation = orientation
         self.alien = alien
-        if self.alien != None:
-            self.type = alien.type
         if self.orientation:
-            self.image = pygame.image.load("Sprites/sprite_0.png").convert_alpha()
-            self.image = pygame.transform.scale(self.image, (32, 32))
+            self.image = pygame.image.load("Sprites/red_alien_shot.png").convert_alpha()
+            #self.image = pygame.transform.scale(self.image, (32, 32))
             self.image = pygame.transform.rotate(self.image, 180)
         else:
-            self.image = pygame.image.load("Sprites/sprite_0.png").convert_alpha()
-            self.image = pygame.transform.scale(self.image, (32, 32))
+            self.image = pygame.image.load("Sprites/red_alien_shot.png").convert_alpha()
+            #self.image = pygame.transform.scale(self.image, (32, 32))
             self.image = pygame.transform.rotate(self.image, 90)
+        if self.alien != None:
+            self.type = alien.type
+            if self.type == 'green':
+                self.image = pygame.image.load("Sprites/green_alien_shot.png").convert_alpha()
         self.rect = self.image.get_rect()
         self.rect.center = [x, y]
 
@@ -398,7 +405,7 @@ class Alien_Laser(pygame.sprite.Sprite):
 class Big_Alien_Laser(pygame.sprite.Sprite):
     def __init__(self, x, y):
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.image.load("Sprites/sprite_0.png").convert_alpha()
+        self.image = pygame.image.load("Sprites/red_alien_shot.png").convert_alpha()
         self.image = pygame.transform.scale(self.image, (128, 128))
         self.rect = self.image.get_rect()
         self.rect.center = [x, y]
@@ -533,7 +540,7 @@ def play():
     pressedEscToBegin = True
     pausedText = False
     alternate = True
-    stop = 0
+    stop = 1
     move = 0
     move_on = 10
     stop_making = 0
@@ -628,7 +635,14 @@ def play():
             if start_making_green == 3:
                 if len(alien_laser_group) != 1 and len(green_group) > 0:
                     green_shooting_alien = random.choice(green_group.sprites())
-                    alien_laser = Alien_Laser(green_shooting_alien.rect.centerx, green_shooting_alien.rect.bottom, True, green_shooting_alien)
+                    if spaceship.rect.x <= green_shooting_alien.rect.x and spaceship.rect.y <= green_shooting_alien.rect.y:
+                        alien_laser = Alien_Laser(green_shooting_alien.rect.left, green_shooting_alien.rect.top, True, green_shooting_alien)
+                    elif spaceship.rect.x >= green_shooting_alien.rect.x and spaceship.rect.y >= green_shooting_alien.rect.y:
+                        alien_laser = Alien_Laser(green_shooting_alien.rect.right, green_shooting_alien.rect.bottom, True, green_shooting_alien)
+                    elif spaceship.rect.x >= green_shooting_alien.rect.x and spaceship.rect.y <= green_shooting_alien.rect.y:
+                        alien_laser = Alien_Laser(green_shooting_alien.rect.right, green_shooting_alien.rect.top, True, green_shooting_alien)
+                    elif spaceship.rect.x <= green_shooting_alien.rect.x and spaceship.rect.y >= green_shooting_alien.rect.y:
+                        alien_laser = Alien_Laser(green_shooting_alien.rect.left, green_shooting_alien.rect.bottom, True, green_shooting_alien)
                     alien_laser_group.add(alien_laser)
                 if len(green_group) == 0:
                     alien_laser_group.empty()
@@ -758,7 +772,7 @@ def play():
             #Endless
             if stop == 7 and len(alien_laser_group) == 0:
                 sound.ending()
-                spaceship.cooldown = 150
+                spaceship.cooldown = 200
                 spaceship.ending_part = True
                 number_of_rows = 1
                 stop += 1

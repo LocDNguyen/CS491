@@ -1,0 +1,10 @@
+altgraph==0.17.2
+future==0.18.2
+keyboard==0.13.5
+numpy==1.24.4
+pefile==2021.9.3
+pillow==10.3.0
+pygame==2.3.0
+pyinstaller==5.0.1
+pyinstaller-hooks-contrib==2022.4
+pywin32-ctypes==0.2.0
