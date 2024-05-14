@@ -23,10 +23,6 @@ sound = Sound('Sounds/menu.wav')
 global pause
 pause = Pause(True)
 
-rows = 2
-cols = 9
-alien_cooldown = 1000
-
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption('Space Invaders Frontier')
 bg = pygame.image.load("Sprites/bg.png").convert_alpha()
@@ -477,8 +473,8 @@ spaceship_group.add(spaceship)
 
 
 def create_aliens():
-        for row in range(rows):
-            for col in range(cols):
+        for row in range(ROWS):
+            for col in range(COLS):
                 alien = Alien(100 + col * 100, 100 + row * 70, 2, 'blue')
                 alien_group.add(alien)
             
@@ -585,7 +581,7 @@ def play():
         if not pause.paused:
             #Eliminate all blue aliens
             if start_making_pink == 0 and start_making_green == 0 and stop == 0:
-                if time_now - last_alien_shot > alien_cooldown and len(alien_laser_group) < 5 and len(alien_group) > 0:
+                if time_now - last_alien_shot > ALIEN_COOLDOWN and len(alien_laser_group) < 5 and len(alien_group) > 0:
                     sound.shoot_laser()
                     shooting_alien = random.choice(alien_group.sprites())
                     alien_laser = Alien_Laser(shooting_alien.rect.centerx, shooting_alien.rect.bottom, True, shooting_alien)
@@ -700,7 +696,7 @@ def play():
                                 enemy = Alien_Still((10 + item * 20), (-20 + row * 50), None)
                                 alien_still_group.add(enemy)
                             stop_making = 1
-                    if time_now - last_alien_shot > alien_cooldown and len(falling_lasers) < 200:
+                    if time_now - last_alien_shot > ALIEN_COOLDOWN and len(falling_lasers) < 200:
                         attacking_enemy = random.choice(alien_still_group.sprites())
                         enemy_laser = Alien_Laser(attacking_enemy.rect.centerx, attacking_enemy.rect.bottom, True, None)
                         falling_lasers.add(enemy_laser)
